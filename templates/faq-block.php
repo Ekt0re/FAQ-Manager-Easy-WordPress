@@ -43,7 +43,7 @@ $unique_id = 'custom-faq-' . uniqid();
                 ?>
                 <style>
                     #<?php echo esc_attr($unique_id); ?> .custom-faq-item[data-faq-id="<?php echo esc_attr($faq_id); ?>"] {
-                        <?php echo strip_tags($custom_css); ?>
+                        <?php echo esc_html(wp_strip_all_tags($custom_css)); ?>
                     }
                 </style>
                 <?php endif; ?>

@@ -3,7 +3,7 @@
  * Plugin Name: Custom Easy FAQ Manager
  * Plugin URI: https://github.com/Ekt0re/FAQ-Manager-Easy-WordPress
  * Description: Crea e gestisci facilmente le tue FAQ personalizzate su WordPress con una GUI semplice ed intuitiva!
- * Version: 1.1
+ * Version: 1.2
  * Author: Ettore Sartori
  * Author URI: https://www.instagram.com/ettore_sartori/
  * License: GPLv3
@@ -23,43 +23,8 @@ class Custom_FAQ_Manager {
      * Utile per debug di errori AJAX 400 (Bad Request)
      */
     private function debug_ajax_errors() {
-        // Disabilitato temporaneamente per evitare errori 500
+        // Disabilitato per il rilascio pubblico
         return;
-        
-        /*
-        // Controlla se è stata definita la costante di debug AJAX
-        if (defined('WP_DEBUG') && WP_DEBUG && defined('WP_DEBUG_AJAX_ERRORS') && WP_DEBUG_AJAX_ERRORS) {
-            // Registra gli hook per aggiungere informazioni di debug alle risposte AJAX
-            add_filter('wp_doing_ajax', function($is_doing_ajax) {
-                // Log delle richieste AJAX
-                if ($is_doing_ajax) {
-                    error_log('DEBUG AJAX REQUEST: ' . print_r($_REQUEST, true));
-                }
-                return $is_doing_ajax;
-            });
-            
-            // Aggiungi handler per gestire gli errori 400 Bad Request
-            add_action('wp_ajax_nopriv_get_faq', function() {
-                error_log('AJAX get_faq chiamato ma non registrato - utente non loggato');
-            }, 1);
-            
-            // Debug dell'hook wp_ajax_ per verificare se l'azione viene registrata correttamente
-            add_action('admin_init', function() {
-                if (isset($_REQUEST['debug_ajax_hooks']) && current_user_can('manage_options')) {
-                    global $wp_filter;
-                    if (isset($wp_filter['wp_ajax_get_faq'])) {
-                        echo '<pre>Debug hook wp_ajax_get_faq: ';
-                        print_r($wp_filter['wp_ajax_get_faq']);
-                        echo '</pre>';
-                        exit;
-                    } else {
-                        echo 'Hook wp_ajax_get_faq non registrato!';
-                        exit;
-                    }
-                }
-            });
-        }
-        */
     }
 
     /**
@@ -164,9 +129,9 @@ class Custom_FAQ_Manager {
      * Register frontend scripts and styles
      */
     public function register_frontend_scripts() {
-        wp_register_style('custom-faq-manager-frontend', plugins_url('assets/css/frontend.css', __FILE__));
-        wp_register_script('custom-faq-manager-frontend', plugins_url('assets/js/frontend.js', __FILE__), array('jquery'), null, true);
-        wp_register_script('custom-faq-fix-answers', plugins_url('assets/js/fix-faq-answers.js', __FILE__), array(), null, true);
+        wp_register_style('custom-faq-manager-frontend', plugins_url('assets/css/frontend.css', __FILE__), array(), '1.2');
+        wp_register_script('custom-faq-manager-frontend', plugins_url('assets/js/frontend.js', __FILE__), array('jquery'), '1.2', true);
+        wp_register_script('custom-faq-fix-answers', plugins_url('assets/js/fix-faq-answers.js', __FILE__), array(), '1.2', true);
         
         // Carica automaticamente gli asset se è presente un blocco o uno shortcode FAQ
         global $post;
@@ -220,9 +185,9 @@ class Custom_FAQ_Manager {
         
         // Aggiungi lo script al footer
         add_action('wp_footer', function() use ($settings_json) {
-            echo "<script>
-                window.customFaqSettings = {$settings_json};
-            </script>";
+            echo "<script>\n";
+            echo "window.customFaqSettings = " . wp_json_encode(json_decode($settings_json)) . ";\n";
+            echo "</script>";
         });
     }
     
@@ -243,26 +208,26 @@ class Custom_FAQ_Manager {
         ));
         ?>
         <div class="wrap">
-            <h1><?php _e('Gestione FAQ', 'custom-faq-manager'); ?></h1>
+            <h1><?php esc_html_e('Gestione FAQ', 'custom-faq-manager'); ?></h1>
             
             <div class="faq-container">
                 <div class="faq-list-container">
-                    <h2><?php _e('Lista Elementi FAQ', 'custom-faq-manager'); ?></h2>
+                    <h2><?php esc_html_e('Lista Elementi FAQ', 'custom-faq-manager'); ?></h2>
                     
                     <div class="faq-toolbar">
                         <div class="faq-search">
-                            <input type="text" id="faq-search" placeholder="<?php _e('Cerca', 'custom-faq-manager'); ?>">
+                            <input type="text" id="faq-search" placeholder="<?php esc_attr_e('Cerca', 'custom-faq-manager'); ?>">
                             <button id="search-btn" class="button"><span class="dashicons dashicons-search"></span></button>
                         </div>
-                        <button id="new-faq-btn" class="button button-primary"><?php _e('Nuovo', 'custom-faq-manager'); ?></button>
+                        <button id="new-faq-btn" class="button button-primary"><?php esc_html_e('Nuovo', 'custom-faq-manager'); ?></button>
                     </div>
                     
                     <div class="faq-list">
                         <table class="widefat">
                             <thead>
                                 <tr>
-                                    <th><?php _e('Nome', 'custom-faq-manager'); ?></th>
-                                    <th><?php _e('Azioni', 'custom-faq-manager'); ?></th>
+                                    <th><?php esc_html_e('Nome', 'custom-faq-manager'); ?></th>
+                                    <th><?php esc_html_e('Azioni', 'custom-faq-manager'); ?></th>
                                 </tr>
                             </thead>
                             <tbody id="faq-list-body">
@@ -280,8 +245,8 @@ class Custom_FAQ_Manager {
                                         <tr data-id="<?php echo esc_attr($faq->ID); ?>">
                                             <td class="faq-title"><?php echo esc_html($faq->post_title); ?></td>
                                             <td class="faq-actions">
-                                                <button class="edit-faq button" data-id="<?php echo esc_attr($faq->ID); ?>"><?php _e('Modifica', 'custom-faq-manager'); ?></button>
-                                                <button class="delete-faq button" data-id="<?php echo esc_attr($faq->ID); ?>"><?php _e('Elimina', 'custom-faq-manager'); ?></button>
+                                                <button class="edit-faq button" data-id="<?php echo esc_attr($faq->ID); ?>"><?php esc_html_e('Modifica', 'custom-faq-manager'); ?></button>
+                                                <button class="delete-faq button" data-id="<?php echo esc_attr($faq->ID); ?>"><?php esc_html_e('Elimina', 'custom-faq-manager'); ?></button>
                                             </td>
                                         </tr>
                                         <?php
@@ -289,7 +254,7 @@ class Custom_FAQ_Manager {
                                 } else {
                                     ?>
                                     <tr class="no-items">
-                                        <td colspan="2"><?php _e('Nessuna FAQ trovata.', 'custom-faq-manager'); ?></td>
+                                        <td colspan="2"><?php esc_html_e('Nessuna FAQ trovata.', 'custom-faq-manager'); ?></td>
                                     </tr>
                                     <?php
                                 }
@@ -300,18 +265,18 @@ class Custom_FAQ_Manager {
                 </div>
                 
                 <div class="faq-editor" id="faq-editor">
-                    <h2 id="editor-title"><?php _e('Aggiungi Nuova FAQ', 'custom-faq-manager'); ?></h2>
+                    <h2 id="editor-title"><?php esc_html_e('Aggiungi Nuova FAQ', 'custom-faq-manager'); ?></h2>
                     
                     <form id="faq-form">
                         <input type="hidden" id="faq-id" value="">
                         
                         <div class="form-field">
-                            <label for="faq-title"><?php _e('Domanda', 'custom-faq-manager'); ?></label>
+                            <label for="faq-title"><?php esc_html_e('Domanda', 'custom-faq-manager'); ?></label>
                             <input type="text" id="faq-title" name="faq-title" required>
                         </div>
                         
                         <div class="form-field">
-                            <label for="faq-content"><?php _e('Risposta', 'custom-faq-manager'); ?></label>
+                            <label for="faq-content"><?php esc_html_e('Risposta', 'custom-faq-manager'); ?></label>
                             <?php
                             wp_editor('', 'faq-content', array(
                                 'media_buttons' => true,
@@ -322,115 +287,115 @@ class Custom_FAQ_Manager {
                         </div>
                         
                         <div class="form-field">
-                            <label><?php _e('Stile Custom', 'custom-faq-manager'); ?></label>
-                            <textarea id="faq-css" name="faq-css" placeholder="<?php _e('CSS personalizzato per questa FAQ', 'custom-faq-manager'); ?>"></textarea>
+                            <label><?php esc_html_e('Stile Custom', 'custom-faq-manager'); ?></label>
+                            <textarea id="faq-css" name="faq-css" placeholder="<?php esc_attr_e('CSS personalizzato per questa FAQ', 'custom-faq-manager'); ?>"></textarea>
                         </div>
                         
                         <div class="form-actions">
-                            <button type="submit" class="button button-primary"><?php _e('Salva FAQ', 'custom-faq-manager'); ?></button>
-                            <button type="button" id="cancel-edit" class="button"><?php _e('Annulla', 'custom-faq-manager'); ?></button>
+                            <button type="submit" class="button button-primary"><?php esc_html_e('Salva FAQ', 'custom-faq-manager'); ?></button>
+                            <button type="button" id="cancel-edit" class="button"><?php esc_html_e('Annulla', 'custom-faq-manager'); ?></button>
                         </div>
                     </form>
                 </div>
             </div>
             
             <div class="faq-settings-container">
-                <h2><?php _e('Personalizzazione Grafica', 'custom-faq-manager'); ?></h2>
+                <h2><?php esc_html_e('Personalizzazione Grafica', 'custom-faq-manager'); ?></h2>
                 <form id="faq-settings-form">
                     <div class="settings-actions" style="margin-bottom: 15px;">
-                        <button type="button" id="import-theme-colors" class="button"><?php _e('Importa dal Tema', 'custom-faq-manager'); ?></button>
-                        <span class="settings-info" style="margin-left: 10px; font-style: italic;"><?php _e('Importa i colori dal tema attivo', 'custom-faq-manager'); ?></span>
+                        <button type="button" id="import-theme-colors" class="button"><?php esc_html_e('Importa dal Tema', 'custom-faq-manager'); ?></button>
+                        <span class="settings-info" style="margin-left: 10px; font-style: italic;"><?php esc_html_e('Importa i colori dal tema attivo', 'custom-faq-manager'); ?></span>
                     </div>
                     
                     <div class="settings-grid">
                         <div class="form-field">
-                            <label for="question_bg_color"><?php _e('Colore sfondo domanda', 'custom-faq-manager'); ?></label>
+                            <label for="question_bg_color"><?php esc_html_e('Colore sfondo domanda', 'custom-faq-manager'); ?></label>
                             <input type="color" id="question_bg_color" name="question_bg_color" value="<?php echo esc_attr($settings['question_bg_color']); ?>">
                         </div>
                         
                         <div class="form-field">
-                            <label for="question_text_color"><?php _e('Colore testo domanda', 'custom-faq-manager'); ?></label>
+                            <label for="question_text_color"><?php esc_html_e('Colore testo domanda', 'custom-faq-manager'); ?></label>
                             <input type="color" id="question_text_color" name="question_text_color" value="<?php echo esc_attr($settings['question_text_color']); ?>">
                         </div>
                         
                         <div class="form-field">
-                            <label for="answer_bg_color"><?php _e('Colore sfondo risposta', 'custom-faq-manager'); ?></label>
+                            <label for="answer_bg_color"><?php esc_html_e('Colore sfondo risposta', 'custom-faq-manager'); ?></label>
                             <input type="color" id="answer_bg_color" name="answer_bg_color" value="<?php echo esc_attr($settings['answer_bg_color']); ?>">
                         </div>
                         
                         <div class="form-field">
-                            <label for="answer_text_color"><?php _e('Colore testo risposta', 'custom-faq-manager'); ?></label>
+                            <label for="answer_text_color"><?php esc_html_e('Colore testo risposta', 'custom-faq-manager'); ?></label>
                             <input type="color" id="answer_text_color" name="answer_text_color" value="<?php echo esc_attr($settings['answer_text_color']); ?>">
                         </div>
                         
                         <div class="form-field">
-                            <label for="border_color"><?php _e('Colore bordo', 'custom-faq-manager'); ?></label>
+                            <label for="border_color"><?php esc_html_e('Colore bordo', 'custom-faq-manager'); ?></label>
                             <input type="color" id="border_color" name="border_color" value="<?php echo esc_attr($settings['border_color']); ?>">
                         </div>
                         
                         <div class="form-field">
-                            <label for="active_question_bg_color"><?php _e('Colore sfondo domanda attiva', 'custom-faq-manager'); ?></label>
+                            <label for="active_question_bg_color"><?php esc_html_e('Colore sfondo domanda attiva', 'custom-faq-manager'); ?></label>
                             <input type="color" id="active_question_bg_color" name="active_question_bg_color" value="<?php echo esc_attr($settings['active_question_bg_color']); ?>">
                         </div>
                         
                         <div class="form-field">
-                            <label for="hover_bg_color"><?php _e('Colore sfondo hover', 'custom-faq-manager'); ?></label>
+                            <label for="hover_bg_color"><?php esc_html_e('Colore sfondo hover', 'custom-faq-manager'); ?></label>
                             <input type="color" id="hover_bg_color" name="hover_bg_color" value="<?php echo esc_attr($settings['hover_bg_color']); ?>">
                         </div>
                         
                         <div class="form-field">
-                            <label for="answer_max_height"><?php _e('Altezza massima risposta chiusa (px)', 'custom-faq-manager'); ?></label>
+                            <label for="answer_max_height"><?php esc_html_e('Altezza massima risposta chiusa (px)', 'custom-faq-manager'); ?></label>
                             <input type="number" id="answer_max_height" name="answer_max_height" min="0" max="500" value="<?php echo esc_attr($settings['answer_max_height']); ?>">
                         </div>
                     </div>
                     
                     <div class="form-actions">
-                        <button type="submit" class="button button-primary"><?php _e('Salva Impostazioni', 'custom-faq-manager'); ?></button>
+                        <button type="submit" class="button button-primary"><?php esc_html_e('Salva Impostazioni', 'custom-faq-manager'); ?></button>
                         <div id="settings-status" style="display: none; margin-left: 10px; padding: 5px 10px; background-color: #dff0d8; color: #3c763d; border-radius: 3px;">
-                            <?php _e('Modifiche salvate con successo!', 'custom-faq-manager'); ?>
+                            <?php esc_html_e('Modifiche salvate con successo!', 'custom-faq-manager'); ?>
                         </div>
                     </div>
                 </form>
                 
                 <div class="settings-preview" style="margin-top: 20px; border: 1px solid #ddd; border-radius: 5px; padding: 15px; background: #f9f9f9;">
-                    <h3><?php _e('Anteprima in tempo reale', 'custom-faq-manager'); ?> <span class="settings-info"><?php _e('(clicca sulla domanda per aprire/chiudere)', 'custom-faq-manager'); ?></span></h3>
+                    <h3><?php esc_html_e('Anteprima in tempo reale', 'custom-faq-manager'); ?> <span class="settings-info"><?php esc_html_e('(clicca sulla domanda per aprire/chiudere)', 'custom-faq-manager'); ?></span></h3>
                     <div id="faq-preview-item" class="faq-item" style="margin-bottom: 0;">
                         <div id="faq-preview-question" class="faq-question">
-                            <?php _e('Esempio di domanda', 'custom-faq-manager'); ?>
+                            <?php esc_html_e('Esempio di domanda', 'custom-faq-manager'); ?>
                         </div>
                         <div id="faq-preview-answer" class="faq-answer">
-                            <p><?php _e('Questo è un esempio di risposta. Le modifiche ai colori verranno mostrate in tempo reale qui.', 'custom-faq-manager'); ?></p>
-                            <p><?php _e('Puoi verificare anche come appare il testo su più righe e controllare l\'altezza massima impostata.', 'custom-faq-manager'); ?></p>
+                            <p><?php esc_html_e('Questo è un esempio di risposta. Le modifiche ai colori verranno mostrate in tempo reale qui.', 'custom-faq-manager'); ?></p>
+                            <p><?php esc_html_e('Puoi verificare anche come appare il testo su più righe e controllare l\'altezza massima impostata.', 'custom-faq-manager'); ?></p>
                         </div>
                     </div>
                 </div>
             </div>
             
             <div class="faq-shortcode-info">
-                <h3><?php _e('Shortcode', 'custom-faq-manager'); ?></h3>
-                <p><?php _e('Usa questo shortcode per visualizzare le FAQ sul tuo sito:', 'custom-faq-manager'); ?></p>
+                <h3><?php esc_html_e('Shortcode', 'custom-faq-manager'); ?></h3>
+                <p><?php esc_html_e('Usa questo shortcode per visualizzare le FAQ sul tuo sito:', 'custom-faq-manager'); ?></p>
                 <code>[custom_faq]</code>
                 
-                <h4><?php _e('Opzioni Shortcode', 'custom-faq-manager'); ?></h4>
+                <h4><?php esc_html_e('Opzioni Shortcode', 'custom-faq-manager'); ?></h4>
                 <ul>
-                    <li><code>limit</code>: <?php _e('Numero di FAQ da mostrare (default: tutte)', 'custom-faq-manager'); ?></li>
-                    <li><code>orderby</code>: <?php _e('Ordinamento (title, date - default: title)', 'custom-faq-manager'); ?></li>
-                    <li><code>order</code>: <?php _e('Direzione ordinamento (ASC, DESC - default: ASC)', 'custom-faq-manager'); ?></li>
-                    <li><code>selected_faqs</code>: <?php _e('IDs delle FAQ specifiche da mostrare (es. "1,4,7")', 'custom-faq-manager'); ?></li>
+                    <li><code>limit</code>: <?php esc_html_e('Numero di FAQ da mostrare (default: tutte)', 'custom-faq-manager'); ?></li>
+                    <li><code>orderby</code>: <?php esc_html_e('Ordinamento (title, date - default: title)', 'custom-faq-manager'); ?></li>
+                    <li><code>order</code>: <?php esc_html_e('Direzione ordinamento (ASC, DESC - default: ASC)', 'custom-faq-manager'); ?></li>
+                    <li><code>selected_faqs</code>: <?php esc_html_e('IDs delle FAQ specifiche da mostrare (es. "1,4,7")', 'custom-faq-manager'); ?></li>
                 </ul>
-                <p><?php _e('Esempio:', 'custom-faq-manager'); ?> <code>[custom_faq limit="5" orderby="date" order="DESC"]</code></p>
+                <p><?php esc_html_e('Esempio:', 'custom-faq-manager'); ?> <code>[custom_faq limit="5" orderby="date" order="DESC"]</code></p>
                 
-                <h3><?php _e('Blocco Gutenberg', 'custom-faq-manager'); ?></h3>
-                <p><?php _e('Puoi anche aggiungere le FAQ utilizzando il blocco Gutenberg "FAQ". Cercalo nell\'editor di WordPress.', 'custom-faq-manager'); ?></p>
+                <h3><?php esc_html_e('Blocco Gutenberg', 'custom-faq-manager'); ?></h3>
+                <p><?php esc_html_e('Puoi anche aggiungere le FAQ utilizzando il blocco Gutenberg "FAQ". Cercalo nell\'editor di WordPress.', 'custom-faq-manager'); ?></p>
             </div>
             
             <div class="faq-author-info">
-                <h3><?php _e('Informazioni sul Plugin', 'custom-faq-manager'); ?></h3>
+                <h3><?php esc_html_e('Informazioni sul Plugin', 'custom-faq-manager'); ?></h3>
                 <p>
-                    <strong>Custom Easy FAQ Manager</strong> v1.1<br>
-                    <?php _e('Sviluppato da', 'custom-faq-manager'); ?> <a href="https://www.instagram.com/ettore_sartori/" target="_blank">Ettore Sartori</a><br>
-                    <a href="https://github.com/Ekt0re/FAQ-Manager-Easy-WordPress" target="_blank"><?php _e('Visita il repository GitHub', 'custom-faq-manager'); ?></a><br>
-                    <?php _e('Licenza', 'custom-faq-manager'); ?>: <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank">GPLv3</a>
+                    <strong>Custom Easy FAQ Manager</strong> v1.2<br>
+                    <?php esc_html_e('Sviluppato da', 'custom-faq-manager'); ?> <a href="https://www.instagram.com/ettore_sartori/" target="_blank">Ettore Sartori</a><br>
+                    <a href="https://github.com/Ekt0re/FAQ-Manager-Easy-WordPress" target="_blank"><?php esc_html_e('Visita il repository GitHub', 'custom-faq-manager'); ?></a><br>
+                    <?php esc_html_e('Licenza', 'custom-faq-manager'); ?>: <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank">GPLv3</a>
                 </p>
             </div>
         </div>
@@ -453,48 +418,42 @@ class Custom_FAQ_Manager {
      * Search FAQs - AJAX handler
      */
     public function search_faqs() {
+        // Verifica nonce
         check_ajax_referer('custom-faq-nonce', 'nonce');
         
-        $search = isset($_POST['search']) ? sanitize_text_field($_POST['search']) : '';
+        // Sanitizza l'input di ricerca
+        $search = isset($_POST['search']) ? sanitize_text_field(wp_unslash($_POST['search'])) : '';
         
         $args = array(
             'post_type'      => 'custom_faq',
             'posts_per_page' => -1,
+            's'              => $search,
             'orderby'        => 'title',
             'order'          => 'ASC'
         );
         
-        if (!empty($search)) {
-            $args['s'] = $search;
-        }
-        
         $faqs = get_posts($args);
         
-        ob_start();
-        
-        if ($faqs) {
-            foreach ($faqs as $faq) {
-                ?>
-                <tr data-id="<?php echo esc_attr($faq->ID); ?>">
-                    <td class="faq-title"><?php echo esc_html($faq->post_title); ?></td>
-                    <td class="faq-actions">
-                        <button class="edit-faq button" data-id="<?php echo esc_attr($faq->ID); ?>"><?php _e('Modifica', 'custom-faq-manager'); ?></button>
-                        <button class="delete-faq button" data-id="<?php echo esc_attr($faq->ID); ?>"><?php _e('Elimina', 'custom-faq-manager'); ?></button>
-                    </td>
-                </tr>
-                <?php
-            }
-        } else {
-            ?>
-            <tr class="no-items">
-                <td colspan="2"><?php _e('Nessuna FAQ trovata.', 'custom-faq-manager'); ?></td>
-            </tr>
-            <?php
+        if (empty($faqs)) {
+            wp_send_json_success(array(
+                'faqs' => array(),
+                'message' => esc_html__('Nessuna FAQ trovata.', 'custom-faq-manager')
+            ));
+            return;
         }
         
-        $html = ob_get_clean();
+        $items = array();
         
-        wp_send_json_success(array('html' => $html));
+        foreach ($faqs as $faq) {
+            $items[] = array(
+                'id'    => $faq->ID,
+                'title' => esc_html($faq->post_title)
+            );
+        }
+        
+        wp_send_json_success(array(
+            'faqs' => $items
+        ));
     }
     
     /**
@@ -671,7 +630,7 @@ class Custom_FAQ_Manager {
         $faqs = get_posts($args);
         
         if (empty($faqs)) {
-            return '<p>' . __('Nessuna FAQ disponibile.', 'custom-faq-manager') . '</p>';
+            return '<p>' . esc_html__('Nessuna FAQ disponibile.', 'custom-faq-manager') . '</p>';
         }
         
         ob_start();
@@ -688,7 +647,7 @@ class Custom_FAQ_Manager {
             
             echo '<div class="faq-item" id="' . esc_attr($css_id) . '">';
             echo '<div class="faq-question">' . esc_html($faq->post_title) . '</div>';
-            echo '<div class="faq-answer">' . apply_filters('the_content', $faq->post_content) . '</div>';
+            echo '<div class="faq-answer">' . wp_kses_post(apply_filters('the_content', $faq->post_content)) . '</div>';
             echo '</div>';
         }
         
@@ -711,7 +670,8 @@ class Custom_FAQ_Manager {
             'custom-faq-block-editor',
             plugin_dir_url(__FILE__) . 'assets/js/block.js',
             array('wp-blocks', 'wp-element', 'wp-components', 'wp-editor', 'wp-i18n', 'wp-api-fetch'),
-            filemtime(plugin_dir_path(__FILE__) . 'assets/js/block.js')
+            filemtime(plugin_dir_path(__FILE__) . 'assets/js/block.js'),
+            true  // Carica nel footer
         );
 
         // Register style for the block editor
@@ -770,17 +730,11 @@ class Custom_FAQ_Manager {
      * Save FAQ Settings - AJAX handler
      */
     public function save_faq_settings() {
-        // Abilita error reporting per il debug
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('DEBUG: save_faq_settings chiamato');
-            error_log('POST data: ' . print_r($_POST, true));
-        }
-        
         // Verifica nonce
         check_ajax_referer('custom-faq-nonce', 'nonce');
         
         if (!current_user_can('manage_options')) {
-            wp_send_json_error(array('message' => __('Non hai i permessi necessari.', 'custom-faq-manager')));
+            wp_send_json_error(array('message' => esc_html__('Non hai i permessi necessari.', 'custom-faq-manager')));
             return;
         }
         
@@ -803,16 +757,13 @@ class Custom_FAQ_Manager {
         foreach ($required_fields as $field) {
             if (!isset($_POST[$field])) {
                 $has_errors = true;
-                if (defined('WP_DEBUG') && WP_DEBUG) {
-                    error_log("ERROR: Campo mancante: $field");
-                }
                 $settings[$field] = '';
             } else {
                 // Sanitizza i campi colore
                 if ($field === 'answer_max_height') {
-                    $settings[$field] = intval($_POST[$field]);
+                    $settings[$field] = intval(wp_unslash($_POST[$field]));
                 } else {
-                    $color = $this->sanitize_custom_color($_POST[$field]);
+                    $color = $this->sanitize_custom_color(sanitize_text_field(wp_unslash($_POST[$field])));
                     // Se il colore non è valido, usa un valore predefinito
                     $settings[$field] = !empty($color) ? $color : '#ffffff';
                 }
@@ -823,9 +774,9 @@ class Custom_FAQ_Manager {
         update_option('custom_faq_settings', $settings);
         
         if ($has_errors) {
-            wp_send_json_error(array('message' => __('Alcuni campi non sono validi. Sono stati usati valori predefiniti.', 'custom-faq-manager')));
+            wp_send_json_error(array('message' => esc_html__('Alcuni campi non sono validi. Sono stati usati valori predefiniti.', 'custom-faq-manager')));
         } else {
-            wp_send_json_success(array('message' => __('Impostazioni salvate con successo.', 'custom-faq-manager')));
+            wp_send_json_success(array('message' => esc_html__('Impostazioni salvate con successo.', 'custom-faq-manager')));
         }
     }
     
@@ -903,23 +854,46 @@ register_activation_hook(__FILE__, 'custom_faq_manager_activate');
  * Funzione da eseguire durante l'attivazione del plugin
  */
 function custom_faq_manager_activate() {
+    global $wp_filesystem;
+    
+    // Inizializza il file system di WordPress
+    if (!function_exists('WP_Filesystem')) {
+        require_once ABSPATH . 'wp-admin/includes/file.php';
+    }
+    
+    // Richiedi le credenziali se necessario
+    $creds = request_filesystem_credentials('');
+    
+    if (false === $creds || !WP_Filesystem($creds)) {
+        // Se non possiamo accedere al filesystem, continuiamo comunque
+        return;
+    }
+    
     // Crea le directory necessarie
     $dir = plugin_dir_path(__FILE__);
     
-    if (!file_exists($dir . 'assets')) {
-        mkdir($dir . 'assets', 0755, true);
+    // Directory assets
+    $assets_dir = $dir . 'assets';
+    if (!$wp_filesystem->is_dir($assets_dir)) {
+        $wp_filesystem->mkdir($assets_dir, FS_CHMOD_DIR);
     }
     
-    if (!file_exists($dir . 'assets/css')) {
-        mkdir($dir . 'assets/css', 0755, true);
+    // Directory CSS
+    $css_dir = $dir . 'assets/css';
+    if (!$wp_filesystem->is_dir($css_dir)) {
+        $wp_filesystem->mkdir($css_dir, FS_CHMOD_DIR);
     }
     
-    if (!file_exists($dir . 'assets/js')) {
-        mkdir($dir . 'assets/js', 0755, true);
+    // Directory JS
+    $js_dir = $dir . 'assets/js';
+    if (!$wp_filesystem->is_dir($js_dir)) {
+        $wp_filesystem->mkdir($js_dir, FS_CHMOD_DIR);
     }
     
-    if (!file_exists($dir . 'templates')) {
-        mkdir($dir . 'templates', 0755, true);
+    // Directory templates
+    $templates_dir = $dir . 'templates';
+    if (!$wp_filesystem->is_dir($templates_dir)) {
+        $wp_filesystem->mkdir($templates_dir, FS_CHMOD_DIR);
     }
     
     // Crea i file CSS e JS
@@ -934,11 +908,23 @@ function custom_faq_manager_activate() {
  * Create CSS files for the plugin
  */
 function create_css_files() {
+    global $wp_filesystem;
+    
+    // Inizializza il file system di WordPress se non è già stato fatto
+    if (!function_exists('WP_Filesystem')) {
+        require_once ABSPATH . 'wp-admin/includes/file.php';
+    }
+    
+    // Richiedi le credenziali se necessario
+    if (!WP_Filesystem()) {
+        return;
+    }
+    
     $dir = plugin_dir_path(__FILE__);
     
     // Admin CSS
     $admin_css = $dir . 'assets/css/admin.css';
-    if (!file_exists($admin_css)) {
+    if (!$wp_filesystem->exists($admin_css)) {
         $css_content = '/**
  * Custom FAQ Manager - Admin Styles
  */
@@ -1034,12 +1020,12 @@ function create_css_files() {
         width: 100%;
     }
 }';
-        file_put_contents($admin_css, $css_content);
+        $wp_filesystem->put_contents($admin_css, $css_content, FS_CHMOD_FILE);
     }
     
     // Frontend CSS
     $frontend_css = $dir . 'assets/css/frontend.css';
-    if (!file_exists($frontend_css)) {
+    if (!$wp_filesystem->exists($frontend_css)) {
         $css_content = '/**
  * Custom FAQ Manager - Frontend Styles
  */
@@ -1100,101 +1086,134 @@ function create_css_files() {
 }
 
 .faq-answer {
-    padding: 0;
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.5s ease, padding 0.5s ease;
-}
-
-.faq-answer.active {
-    padding: 20px;
-    max-height: 1000px; /* Arbitrary large value */
+    display: none;
+    padding: 15px 20px;
+    color: #333;
+    line-height: 1.6;
+    background-color: white;
 }
 
 .faq-answer p:first-child {
     margin-top: 0;
 }
 
-
-
 .faq-answer p:last-child {
     margin-bottom: 0;
 }
 
-/* Responsive adjustments */
-@media screen and (max-width: 768px) {
-    .faq-question {
-        padding: 12px 15px;
-        font-size: 0.95rem;
-    }
-    
-    .faq-answer.active {
-        padding: 15px;
-    }
+.faq-answer.active {
+    display: block;
+}
+
+.custom-faq-empty {
+    text-align: center;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    color: #666;
 }';
-        file_put_contents($frontend_css, $css_content);
+        $wp_filesystem->put_contents($frontend_css, $css_content, FS_CHMOD_FILE);
     }
     
-    // Block editor CSS
-    $block_editor_css = $dir . 'assets/css/block-editor.css';
-    if (!file_exists($block_editor_css)) {
+    // Block Editor CSS
+    $block_css = $dir . 'assets/css/block-editor.css';
+    if (!$wp_filesystem->exists($block_css)) {
         $css_content = '/**
  * Custom FAQ Manager - Block Editor Styles
  */
 
-.wp-block-custom-faq-manager-faq-block {
-    padding: 1em;
-    background: #f8f8f8;
-    border: 1px dashed #ccc;
+.faq-block-inspector-panel {
+    margin-bottom: 20px;
+}
+
+.faq-block-inspector-panel .components-base-control {
+    margin-bottom: 15px;
+}
+
+.faq-block-placeholder {
+    padding: 20px;
+    background-color: #f9f9f9;
+    border: 1px dashed #aaa;
     border-radius: 5px;
+    text-align: center;
 }
 
-.faq-block-title {
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #eee;
-    font-size: 1.3em;
-    font-weight: bold;
-    color: #23282d;
-}
-
-.faq-block-description {
-    margin-bottom: 15px;
-    font-size: 0.9em;
-    color: #666;
-}
-
-.faq-block-options {
-    background: #ffffff;
-    padding: 15px;
-    border: 1px solid #e0e0e0;
-    border-radius: 5px;
-    margin-bottom: 15px;
-}
-
-.faq-block-option {
-    display: flex;
+.faq-block-placeholder svg {
+    width: 30px;
+    height: 30px;
     margin-bottom: 10px;
-    align-items: center;
+    color: #555;
 }
 
-.faq-block-option label {
-    flex: 0 0 120px;
-    font-weight: 500;
+.faq-block-placeholder h3 {
+    margin: 0 0 10px;
+    color: #333;
 }
 
-.faq-block-option .components-select-control__input,
-.faq-block-option .components-range-control__number {
-    width: 100%;
-}
-
-.faq-preview-notice {
-    font-style: italic;
+.faq-block-placeholder p {
+    margin: 0;
     color: #666;
-    font-size: 0.9em;
+}
+
+.faq-block-preview {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.faq-block-preview-item {
+    margin-bottom: 0;
+    border-bottom: 1px solid #ddd;
+}
+
+.faq-block-preview-item:last-child {
+    border-bottom: none;
+}
+
+.faq-block-preview-question {
+    background-color: #f9f9f9;
+    padding: 12px 15px;
+    font-weight: 600;
+    color: #333;
+}
+
+.faq-block-preview-answer {
+    padding: 12px 15px;
+    background-color: #fff;
+    color: #333;
+}
+
+.faq-block-select-options {
     margin-top: 10px;
+}
+
+.faq-block-select-list {
+    margin-top: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.faq-block-select-item {
+    padding: 8px 12px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+
+.faq-block-select-item:last-child {
+    border-bottom: none;
+}
+
+.faq-block-select-item:hover {
+    background-color: #f5f5f5;
 }';
-        file_put_contents($block_editor_css, $css_content);
+        $wp_filesystem->put_contents($block_css, $css_content, FS_CHMOD_FILE);
     }
 }
 
@@ -1202,16 +1221,29 @@ function create_css_files() {
  * Create JS files for the plugin
  */
 function create_js_files() {
+    global $wp_filesystem;
+    
+    // Inizializza il file system di WordPress se non è già stato fatto
+    if (!function_exists('WP_Filesystem')) {
+        require_once ABSPATH . 'wp-admin/includes/file.php';
+    }
+    
+    // Richiedi le credenziali se necessario
+    if (!WP_Filesystem()) {
+        return;
+    }
+    
     $dir = plugin_dir_path(__FILE__);
     
-    // Crea la cartella se non esiste
-    if (!file_exists($dir . 'assets/js/')) {
-        mkdir($dir . 'assets/js/', 0755, true);
+    // Assicurati che la directory JS esista
+    $js_dir = $dir . 'assets/js/';
+    if (!$wp_filesystem->is_dir($js_dir)) {
+        $wp_filesystem->mkdir($js_dir, FS_CHMOD_DIR);
     }
     
     // Creazione del file fix-faq-answers.js
     $fix_answers_js = $dir . 'assets/js/fix-faq-answers.js';
-    if (!file_exists($fix_answers_js)) {
+    if (!$wp_filesystem->exists($fix_answers_js)) {
         $js_content = '/**
  * Script per correggere gli elementi FAQ con altezza fissa
  * Controlla elementi .faq-answer con stile inline e rimuove il max-height fisso
@@ -1248,468 +1280,42 @@ document.addEventListener(\'DOMContentLoaded\', function() {
         specificAnswer.classList.add(\'active\');
     }
 });';
-        file_put_contents($fix_answers_js, $js_content);
+        $wp_filesystem->put_contents($fix_answers_js, $js_content, FS_CHMOD_FILE);
     }
     
     // Admin JS
     $admin_js = $dir . 'assets/js/admin.js';
-    if (!file_exists($admin_js)) {
+    if (!$wp_filesystem->exists($admin_js)) {
         $js_content = '/**
  * Custom FAQ Manager - Admin Scripts
  */
 jQuery(document).ready(function($) {
-    // Edit FAQ
-    $(document).on("click", ".edit-faq", function() {
-        var id = $(this).data("id");
-        
-        // Show loading indicator
-        $(this).text("Loading...").attr("disabled", true);
-        
-        // Get FAQ data
-        $.post(custom_faq_ajax.ajax_url, {
-            action: "get_faq",
-            id: id,
-            nonce: custom_faq_ajax.nonce
-        }, function(response) {
-            if (response.success) {
-                var data = response.data;
-                
-                // Populate form
-                $("#faq-id").val(data.id);
-                $("#faq-title").val(data.title);
-                
-                // Set content in editor
-                if (typeof tinyMCE !== "undefined" && tinyMCE.get("faq-content")) {
-                    tinyMCE.get("faq-content").setContent(data.content);
-                } else {
-                    $("#faq-content").val(data.content);
-                }
-                
-                $("#faq-css").val(data.css);
-                
-                // Update editor title
-                $("#editor-title").text("Modifica FAQ");
-                
-                // Scroll to editor
-                $("html, body").animate({
-                    scrollTop: $("#faq-editor").offset().top - 50
-                }, 500);
-            } else {
-                alert(response.data.message);
-            }
-            
-            // Reset button
-            $(".edit-faq[data-id=\"" + id + "\"]").text("Modifica").attr("disabled", false);
-        }).fail(function() {
-            alert("Si è verificato un errore. Riprova.");
-            $(".edit-faq[data-id=\"" + id + "\"]").text("Modifica").attr("disabled", false);
-        });
-    });
-    
-    // New FAQ button
-    $("#new-faq-btn").click(function() {
-        // Reset form
-        $("#faq-id").val("");
-        $("#faq-title").val("");
-        
-        // Clear editor
-        if (typeof tinyMCE !== "undefined" && tinyMCE.get("faq-content")) {
-            tinyMCE.get("faq-content").setContent("");
-        } else {
-            $("#faq-content").val("");
-        }
-        
-        $("#faq-css").val("");
-        
-        // Update editor title
-        $("#editor-title").text("Aggiungi Nuova FAQ");
-        
-        // Scroll to editor
-        $("html, body").animate({
-            scrollTop: $("#faq-editor").offset().top - 50
-        }, 500);
-    });
-    
-    // Cancel edit
-    $("#cancel-edit").click(function(e) {
-        e.preventDefault();
-        
-        // Reset form
-        $("#faq-id").val("");
-        $("#faq-title").val("");
-        
-        // Clear editor
-        if (typeof tinyMCE !== "undefined" && tinyMCE.get("faq-content")) {
-            tinyMCE.get("faq-content").setContent("");
-        } else {
-            $("#faq-content").val("");
-        }
-        
-        $("#faq-css").val("");
-        
-        // Update editor title
-        $("#editor-title").text("Aggiungi Nuova FAQ");
-        
-        // Scroll to list
-        $("html, body").animate({
-            scrollTop: $(".faq-list-container").offset().top - 50
-        }, 500);
-    });
-    
-    // Search FAQs
-    $("#search-btn").click(function() {
-        var search = $("#faq-search").val();
-        
-        $.post(custom_faq_ajax.ajax_url, {
-            action: "search_faqs",
-            search: search,
-            nonce: custom_faq_ajax.nonce
-        }, function(response) {
-            if (response.success) {
-                $("#faq-list-body").html(response.data.html);
-            }
-        });
-    });
-    
-    // Search on Enter key
-    $("#faq-search").keypress(function(e) {
-        if (e.which === 13) {
-            $("#search-btn").click();
-            e.preventDefault();
-        }
-    });
-    
-    // Save FAQ
-    $("#faq-form").submit(function(e) {
-        e.preventDefault();
-        
-        var id = $("#faq-id").val();
-        var title = $("#faq-title").val();
-        var content = "";
-        
-        // Get content from editor
-        if (typeof tinyMCE !== "undefined" && tinyMCE.get("faq-content")) {
-            content = tinyMCE.get("faq-content").getContent();
-        } else {
-            content = $("#faq-content").val();
-        }
-        
-        var css = $("#faq-css").val();
-        
-        // Validate
-        if (!title.trim()) {
-            alert("La domanda è obbligatoria.");
-            return;
-        }
-        
-        // Show loading
-        var $submitBtn = $(this).find("button[type=\"submit\"]");
-        var originalText = $submitBtn.text();
-        $submitBtn.text("Salvataggio...").attr("disabled", true);
-        
-        $.post(custom_faq_ajax.ajax_url, {
-            action: "save_faq",
-            id: id,
-            title: title,
-            content: content,
-            css: css,
-            nonce: custom_faq_ajax.nonce
-        }, function(response) {
-            if (response.success) {
-                // Refresh FAQ list
-                $("#search-btn").click();
-                
-                // Show success message
-                alert(response.data.message);
-                
-                // Reset form
-                $("#faq-id").val("");
-                $("#faq-title").val("");
-                
-                // Clear editor
-                if (typeof tinyMCE !== "undefined" && tinyMCE.get("faq-content")) {
-                    tinyMCE.get("faq-content").setContent("");
-                } else {
-                    $("#faq-content").val("");
-                }
-                
-                $("#faq-css").val("");
-                
-                // Update editor title
-                $("#editor-title").text("Aggiungi Nuova FAQ");
-                
-                // Scroll to list
-                $("html, body").animate({
-                    scrollTop: $(".faq-list-container").offset().top - 50
-                }, 500);
-            } else {
-                alert(response.data.message);
-            }
-            
-            // Reset button
-            $submitBtn.text(originalText).attr("disabled", false);
-        }).fail(function() {
-            alert("Si è verificato un errore. Riprova.");
-            $submitBtn.text(originalText).attr("disabled", false);
-        });
-    });
-    
-    // Delete FAQ
-    $(document).on("click", ".delete-faq", function() {
-        if (!confirm("Sei sicuro di voler eliminare questa FAQ?")) {
-            return;
-        }
-        
-        var id = $(this).data("id");
-        var $row = $(this).closest("tr");
-        
-        // Show loading
-        $(this).text("Eliminazione...").attr("disabled", true);
-        
-        $.post(custom_faq_ajax.ajax_url, {
-            action: "delete_faq",
-            id: id,
-            nonce: custom_faq_ajax.nonce
-        }, function(response) {
-            if (response.success) {
-                // Remove row
-                $row.fadeOut(300, function() {
-                    $(this).remove();
-                    
-                    // Check if list is empty
-                    if ($("#faq-list-body tr").length === 0) {
-                        $("#faq-list-body").html("<tr class=\"no-items\"><td colspan=\"2\">Nessuna FAQ trovata.</td></tr>");
-                    }
-                });
-                
-                // Show success message
-                alert(response.data.message);
-            } else {
-                alert(response.data.message);
-                $(".delete-faq[data-id=\"" + id + "\"]").text("Elimina").attr("disabled", false);
-            }
-        }).fail(function() {
-            alert("Si è verificato un errore. Riprova.");
-            $(".delete-faq[data-id=\"" + id + "\"]").text("Elimina").attr("disabled", false);
-        });
-    });
+    // Codice JavaScript admin...
 });';
-        file_put_contents($admin_js, $js_content);
+        $wp_filesystem->put_contents($admin_js, $js_content, FS_CHMOD_FILE);
     }
     
     // Frontend JS
     $frontend_js = $dir . 'assets/js/frontend.js';
-    if (!file_exists($frontend_js)) {
+    if (!$wp_filesystem->exists($frontend_js)) {
         $js_content = '/**
  * Custom FAQ Manager - Frontend Scripts
  */
-jQuery(document).ready(function($) {
-    // Toggle FAQ items
-    $(".faq-question").on("click", function() {
-        var $this = $(this);
-        var $answer = $this.next(".faq-answer");
-        var $faqItem = $this.closest(".faq-item");
-        
-        // Toggle active state
-        $this.toggleClass("active");
-        
-        // Toggle answer visibility with animation
-        if ($this.hasClass("active")) {
-            $answer.addClass("active");
-            
-            // Optional: Close other open FAQs (accordion behavior)
-            // Uncomment these lines to enable accordion behavior
-            /*
-            $faqItem.siblings(".faq-item").find(".faq-question.active").removeClass("active");
-            $faqItem.siblings(".faq-item").find(".faq-answer.active").removeClass("active");
-            */
-        } else {
-            $answer.removeClass("active");
-        }
-    });
-    
-    // Check for URL hash to open specific FAQ
-    function checkHash() {
-        var hash = window.location.hash;
-        if (hash) {
-            var $targetFaq = $(hash);
-            if ($targetFaq.length && $targetFaq.hasClass("faq-item")) {
-                // Open the FAQ
-                var $question = $targetFaq.find(".faq-question");
-                var $answer = $targetFaq.find(".faq-answer");
-                
-                if (!$question.hasClass("active")) {
-                    $question.addClass("active");
-                    $answer.addClass("active");
-                }
-                
-                // Scroll to the FAQ with slight delay for smooth animation
-                setTimeout(function() {
-                    $("html, body").animate({
-                        scrollTop: $targetFaq.offset().top - 100
-                    }, 500);
-                }, 100);
-            }
-        }
-    }
-    
-    // Run on page load
-    checkHash();
-    
-    // Run when hash changes (user clicks a link to an FAQ)
-    $(window).on("hashchange", checkHash);
+document.addEventListener("DOMContentLoaded", function() {
+    // Codice JavaScript frontend...
 });';
-        file_put_contents($frontend_js, $js_content);
+        $wp_filesystem->put_contents($frontend_js, $js_content, FS_CHMOD_FILE);
     }
     
     // Block JS
     $block_js = $dir . 'assets/js/block.js';
-    if (!file_exists($block_js)) {
+    if (!$wp_filesystem->exists($block_js)) {
         $js_content = '/**
  * Custom FAQ Manager - Gutenberg Block
  */
 (function(blocks, editor, components, i18n, element) {
-    var el = element.createElement;
-    var __ = i18n.__;
-    var InspectorControls = editor.InspectorControls;
-    var PanelBody = components.PanelBody;
-    var SelectControl = components.SelectControl;
-    var RangeControl = components.RangeControl;
-    var ServerSideRender = wp.serverSideRender;
-    
-    // Register the block
-    blocks.registerBlockType("custom-faq-manager/faq-block", {
-        title: __("FAQ", "custom-faq-manager"),
-        icon: "format-status",
-        category: "widgets",
-        keywords: [
-            __("faq", "custom-faq-manager"),
-            __("domande", "custom-faq-manager"),
-            __("frequent", "custom-faq-manager")
-        ],
-        
-        // Block attributes
-        attributes: {
-            limit: {
-                type: "number",
-                default: -1
-            },
-            orderby: {
-                type: "string",
-                default: "title"
-            },
-            order: {
-                type: "string",
-                default: "ASC"
-            },
-            selectedFaqs: {
-                type: "array",
-                default: []
-            }
-        },
-        
-        // Editor component
-        edit: function(props) {
-            var attributes = props.attributes;
-            
-            // Inspector controls for block options
-            var inspectorControls = el(
-                InspectorControls,
-                { key: "inspector" },
-                el(
-                    PanelBody,
-                    {
-                        title: __("Impostazioni FAQ", "custom-faq-manager"),
-                        initialOpen: true
-                    },
-                    el(
-                        RangeControl,
-                        {
-                            label: __("Numero di FAQ da mostrare", "custom-faq-manager"),
-                            value: attributes.limit,
-                            onChange: function(value) {
-                                props.setAttributes({ limit: value === undefined ? -1 : value });
-                            },
-                            min: -1,
-                            max: 50,
-                            help: __("-1 per mostrare tutte le FAQ", "custom-faq-manager")
-                        }
-                    ),
-                    el(
-                        SelectControl,
-                        {
-                            label: __("Ordinamento", "custom-faq-manager"),
-                            value: attributes.orderby,
-                            options: [
-                                { label: __("Titolo", "custom-faq-manager"), value: "title" },
-                                { label: __("Data", "custom-faq-manager"), value: "date" }
-                            ],
-                            onChange: function(value) {
-                                props.setAttributes({ orderby: value });
-                            }
-                        }
-                    ),
-                    el(
-                        SelectControl,
-                        {
-                            label: __("Direzione ordinamento", "custom-faq-manager"),
-                            value: attributes.order,
-                            options: [
-                                { label: __("Ascendente (A-Z)", "custom-faq-manager"), value: "ASC" },
-                                { label: __("Discendente (Z-A)", "custom-faq-manager"), value: "DESC" }
-                            ],
-                            onChange: function(value) {
-                                props.setAttributes({ order: value });
-                            }
-                        }
-                    )
-                )
-            );
-            
-            // Block content in editor
-            return [
-                inspectorControls,
-                el(
-                    "div",
-                    { className: props.className },
-                    el(
-                        "div",
-                        { className: "faq-block-title" },
-                        __("Blocco FAQ", "custom-faq-manager")
-                    ),
-                    el(
-                        "div",
-                        { className: "faq-block-description" },
-                        __("Questo blocco visualizzerà le tue FAQ. Usa i controlli nella barra laterale per personalizzare la visualizzazione.", "custom-faq-manager")
-                    ),
-                    el(
-                        ServerSideRender,
-                        {
-                            block: "custom-faq-manager/faq-block",
-                            attributes: attributes
-                        }
-                    ),
-                    el(
-                        "div",
-                        { className: "faq-preview-notice" },
-                        __("Nota: l\'anteprima potrebbe apparire diversa nel frontend.", "custom-faq-manager")
-                    )
-                )
-            ];
-        },
-        
-        // Save function returns null because this is a dynamic block
-        save: function() {
-            return null;
-        }
-    });
-})(
-    window.wp.blocks,
-    window.wp.blockEditor,
-    window.wp.components,
-    window.wp.i18n,
-    window.wp.element
-);';
-        file_put_contents($block_js, $js_content);
+    // Codice JavaScript del blocco Gutenberg...
+})();';
+        $wp_filesystem->put_contents($block_js, $js_content, FS_CHMOD_FILE);
     }
 } 

@@ -250,7 +250,86 @@ jQuery(document).ready(function($) {
         }
     });
     
-    // Save FAQ
+    // Funzione per aggiornare l'elenco delle FAQ
+    function refreshFaqList() {
+        var $listBody = $("#faq-list-body");
+        var search = $("#faq-search").val();
+        
+        // Mostra indicatore di caricamento
+        $listBody.html('<tr><td colspan="2" style="text-align:center;padding:15px;"><span class="spinner is-active" style="float:none;"></span> Aggiornamento in corso...</td></tr>');
+        
+        $.ajax({
+            url: custom_faq_ajax.ajax_url,
+            type: 'POST',
+            data: {
+                action: "search_faqs",
+                search: search,
+                nonce: custom_faq_ajax.nonce
+            },
+            dataType: 'json',
+            cache: false, // Impedisce la memorizzazione nella cache
+            success: function(response) {
+                if (response.success && response.data) {
+                    // Controlla se abbiamo un array di FAQ
+                    if (response.data.faqs && response.data.faqs.length > 0) {
+                        var html = '';
+                        // Ordina le FAQ per titolo alfabeticamente
+                        response.data.faqs.sort(function(a, b) {
+                            return a.title.localeCompare(b.title);
+                        });
+                        
+                        $.each(response.data.faqs, function(index, faq) {
+                            html += '<tr data-id="' + faq.id + '">';
+                            html += '<td class="faq-title">' + faq.title + '</td>';
+                            html += '<td class="faq-actions">';
+                            html += '<button class="edit-faq button" data-id="' + faq.id + '">Modifica</button> ';
+                            html += '<button class="delete-faq button" data-id="' + faq.id + '">Elimina</button>';
+                            html += '</td>';
+                            html += '</tr>';
+                        });
+                        $listBody.html(html);
+                        
+                        // Evidenzia l'ultima FAQ modificata o creata
+                        var lastEditedId = $("#last-edited-faq-id").val();
+                        if (lastEditedId) {
+                            var $lastEditedRow = $('tr[data-id="' + lastEditedId + '"]');
+                            if ($lastEditedRow.length) {
+                                $lastEditedRow.css({
+                                    "background-color": "#f7fcff",
+                                    "transition": "background-color 1s"
+                                });
+                                
+                                // Ripristina il colore di sfondo originale dopo 2 secondi
+                                setTimeout(function() {
+                                    $lastEditedRow.css({
+                                        "background-color": "",
+                                        "transition": "background-color 1s"
+                                    });
+                                }, 2000);
+                                
+                                // Rimuovi l'ID dell'ultima FAQ modificata
+                                $("#last-edited-faq-id").val("");
+                            }
+                        }
+                    } else {
+                        // Nessuna FAQ trovata
+                        $listBody.html('<tr class="no-items"><td colspan="2">Nessuna FAQ trovata.</td></tr>');
+                    }
+                } else {
+                    // Gestisci l'errore
+                    $listBody.html('<tr><td colspan="2" style="color:red;">Errore durante l\'aggiornamento dell\'elenco. Ricarica la pagina.</td></tr>');
+                }
+            },
+            error: function() {
+                $listBody.html('<tr><td colspan="2" style="color:red;">Errore di connessione. Ricarica la pagina.</td></tr>');
+            }
+        });
+    }
+    
+    // Aggiungi un campo nascosto per tenere traccia dell'ultima FAQ modificata
+    $("body").append('<input type="hidden" id="last-edited-faq-id" value="">');
+
+    // Modifica la gestione del salvataggio FAQ per memorizzare l'ID dell'ultima FAQ modificata
     $("#faq-form").submit(function(e) {
         e.preventDefault();
         
@@ -259,18 +338,8 @@ jQuery(document).ready(function($) {
         var content = "";
         
         // Get content from editor
-        if (typeof tinyMCE !== "undefined") {
-            var editor = tinyMCE.get("faq-content");
-            if (editor && editor.initialized) {
-                try {
-                    content = editor.getContent();
-                } catch (editorError) {
-                    console.error("Errore nel recupero del contenuto dall'editor:", editorError);
-                    content = $("#faq-content").val();
-                }
-            } else {
-                content = $("#faq-content").val();
-            }
+        if (typeof tinyMCE !== "undefined" && tinyMCE.get("faq-content")) {
+            content = tinyMCE.get("faq-content").getContent();
         } else {
             content = $("#faq-content").val();
         }
@@ -278,9 +347,8 @@ jQuery(document).ready(function($) {
         var css = $("#faq-css").val();
         
         // Validate
-        if (!title || !title.trim()) {
+        if (!title.trim()) {
             alert("La domanda è obbligatoria.");
-            $("#faq-title").focus();
             return;
         }
         
@@ -289,11 +357,9 @@ jQuery(document).ready(function($) {
         var originalText = $submitBtn.text();
         $submitBtn.text("Salvataggio...").attr("disabled", true);
         
-        // Salva con gestione errori migliorata
         $.ajax({
             url: custom_faq_ajax.ajax_url,
             type: 'POST',
-            dataType: 'json',
             data: {
                 action: "save_faq",
                 id: id,
@@ -302,30 +368,38 @@ jQuery(document).ready(function($) {
                 css: css,
                 nonce: custom_faq_ajax.nonce
             },
+            dataType: 'json',
+            cache: false,
             success: function(response) {
-                if (response && response.success) {
-                    // Refresh FAQ list
-                    $("#search-btn").click();
+                if (response.success) {
+                    // Mostra messaggio di successo
+                    var successMessage = id > 0 
+                        ? "FAQ aggiornata con successo."
+                        : "Nuova FAQ creata con successo.";
                     
-                    // Show success message
-                    alert(response.data.message || "FAQ salvata con successo.");
+                    // Crea elemento notifica
+                    var $notification = $('<div class="notice notice-success is-dismissible"><p>' + successMessage + '</p></div>');
+                    
+                    // Aggiungi notifica all'inizio della pagina
+                    $('.wrap > h1').after($notification);
+                    
+                    // Rimuovi notifica dopo 4 secondi
+                    setTimeout(function() {
+                        $notification.slideUp(300, function() {
+                            $(this).remove();
+                        });
+                    }, 4000);
+                    
+                    // Memorizza l'ID dell'ultima FAQ modificata
+                    $("#last-edited-faq-id").val(response.data.id);
                     
                     // Reset form
                     $("#faq-id").val("");
                     $("#faq-title").val("");
                     
                     // Clear editor
-                    if (typeof tinyMCE !== "undefined") {
-                        var editor = tinyMCE.get("faq-content");
-                        if (editor && editor.initialized) {
-                            try {
-                                editor.setContent("");
-                            } catch(e) {
-                                $("#faq-content").val("");
-                            }
-                        } else {
-                            $("#faq-content").val("");
-                        }
+                    if (typeof tinyMCE !== "undefined" && tinyMCE.get("faq-content")) {
+                        tinyMCE.get("faq-content").setContent("");
                     } else {
                         $("#faq-content").val("");
                     }
@@ -335,49 +409,30 @@ jQuery(document).ready(function($) {
                     // Update editor title
                     $("#editor-title").text("Aggiungi Nuova FAQ");
                     
-                    // Scroll to list
+                    // Aggiorna elenco FAQ con un piccolo ritardo per assicurare che il database sia aggiornato
+                    setTimeout(function() {
+                        refreshFaqList();
+                    }, 300);
+                    
+                    // Scroll to list per vedere l'elemento aggiornato/aggiunto
                     $("html, body").animate({
                         scrollTop: $(".faq-list-container").offset().top - 50
                     }, 500);
                 } else {
-                    console.error("Errore nel salvataggio:", response);
-                    var errorMsg = response && response.data && response.data.message
-                        ? response.data.message
-                        : "Si è verificato un errore durante il salvataggio della FAQ. Riprova.";
-                    alert(errorMsg);
+                    alert(response.data.message);
                 }
                 
                 // Reset button
                 $submitBtn.text(originalText).attr("disabled", false);
             },
-            error: function(xhr, status, error) {
-                console.error("Errore AJAX nel salvataggio:", error);
-                console.error("Stato:", status);
-                console.error("Risposta server:", xhr.responseText);
-                
-                var errorMsg = "Si è verificato un errore di comunicazione con il server durante il salvataggio.";
-                
-                // Prova a interpretare la risposta se è in formato JSON
-                try {
-                    var jsonResponse = JSON.parse(xhr.responseText);
-                    if (jsonResponse && jsonResponse.message) {
-                        errorMsg += " Dettagli: " + jsonResponse.message;
-                    }
-                } catch(e) {
-                    // La risposta non è in formato JSON valido
-                    if (xhr.status) {
-                        errorMsg += " Codice di stato: " + xhr.status;
-                    }
-                }
-                
-                alert(errorMsg);
+            error: function() {
+                alert("Si è verificato un errore. Riprova.");
                 $submitBtn.text(originalText).attr("disabled", false);
-            },
-            timeout: 30000 // Aumenta il timeout a 30 secondi
+            }
         });
     });
     
-    // Delete FAQ
+    // Delete FAQ con aggiornamento automatico
     $(document).on("click", ".delete-faq", function() {
         if (!confirm("Sei sicuro di voler eliminare questa FAQ?")) {
             return;
@@ -389,31 +444,47 @@ jQuery(document).ready(function($) {
         // Show loading
         $(this).text("Eliminazione...").attr("disabled", true);
         
-        $.post(custom_faq_ajax.ajax_url, {
-            action: "delete_faq",
-            id: id,
-            nonce: custom_faq_ajax.nonce
-        }, function(response) {
-            if (response.success) {
-                // Remove row
-                $row.fadeOut(300, function() {
-                    $(this).remove();
-                    
-                    // Check if list is empty
-                    if ($("#faq-list-body tr").length === 0) {
-                        $("#faq-list-body").html("<tr class=\"no-items\"><td colspan=\"2\">Nessuna FAQ trovata.</td></tr>");
-                    }
-                });
-                
-                // Show success message
-                alert(response.data.message);
-            } else {
-                alert(response.data.message);
+        $.ajax({
+            url: custom_faq_ajax.ajax_url,
+            type: 'POST',
+            data: {
+                action: "delete_faq",
+                id: id,
+                nonce: custom_faq_ajax.nonce
+            },
+            dataType: 'json',
+            cache: false,
+            success: function(response) {
+                if (response.success) {
+                    // Rimuovi la riga con effetto di dissolvenza
+                    $row.fadeOut(300, function() {
+                        $(this).remove();
+                        
+                        // Crea messaggio di successo
+                        var $notification = $('<div class="notice notice-success is-dismissible"><p>FAQ eliminata con successo.</p></div>');
+                        $('.wrap > h1').after($notification);
+                        
+                        // Rimuovi notifica dopo 3 secondi
+                        setTimeout(function() {
+                            $notification.slideUp(300, function() {
+                                $(this).remove();
+                            });
+                        }, 3000);
+                        
+                        // Aggiorna l'elenco dopo l'eliminazione con un piccolo ritardo
+                        setTimeout(function() {
+                            refreshFaqList();
+                        }, 300);
+                    });
+                } else {
+                    alert(response.data.message);
+                    $(".delete-faq[data-id=\"" + id + "\"]").text("Elimina").attr("disabled", false);
+                }
+            },
+            error: function() {
+                alert("Si è verificato un errore. Riprova.");
                 $(".delete-faq[data-id=\"" + id + "\"]").text("Elimina").attr("disabled", false);
             }
-        }).fail(function() {
-            alert("Si è verificato un errore. Riprova.");
-            $(".delete-faq[data-id=\"" + id + "\"]").text("Elimina").attr("disabled", false);
         });
     });
 

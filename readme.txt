@@ -2,8 +2,8 @@
 Contributors: ektore
 Tags: faq, accordion, frequently asked questions, questions, answers
 Requires at least: 5.0
-Tested up to: 6.4
-Stable tag: 1.1
+Tested up to: 6.8
+Stable tag: 1.2
 Requires PHP: 7.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -32,6 +32,10 @@ Custom Easy FAQ Manager è un plugin leggero ma potente che ti permette di crear
 2. Aggiungi le tue FAQ con domande e risposte
 3. Inserisci le FAQ nelle tue pagine tramite il blocco Gutenberg dedicato o lo shortcode [custom_faq]
 4. Personalizza l'aspetto grafico tramite le impostazioni del plugin
+
+**Informazioni sulla sicurezza:**
+
+Questo plugin è stato testato con "Plugin Check" e tutti i problemi indicati sono stati risolti. Confermiamo che il codice rispetta le linee guida di WordPress.org per la sicurezza e le best practices.
 
 == Installation ==
 

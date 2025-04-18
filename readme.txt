@@ -3,7 +3,7 @@ Contributors: ektore
 Tags: faq, accordion, frequently asked questions, questions, answers
 Requires at least: 5.0
 Tested up to: 6.8
-Stable tag: 1.2
+Stable tag: 1.3
 Requires PHP: 7.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html

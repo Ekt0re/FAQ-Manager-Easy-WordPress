@@ -1,0 +1,172 @@
+# Copyright (C) 2023 Ettore Sartori
+# This file is distributed under the GPLv3.
+msgid ""
+msgstr ""
+"Project-Id-Version: Custom Easy FAQ Manager 1.3\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/custom-faq-manager\n"
+"Last-Translator: Ettore Sartori <info@ettoresartori.com>\n"
+"Language-Team: Spanish <es@li.org>\n"
+"Language: es_ES\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2023-11-30T12:00:00+00:00\n"
+"PO-Revision-Date: 2023-11-30T12:00:00+00:00\n"
+"X-Generator: WP-CLI 2.7.1\n"
+"X-Domain: custom-faq-manager\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. Plugin Name of the plugin
+msgid "Custom Easy FAQ Manager"
+msgstr "Gestor de Preguntas Frecuentes Personalizado"
+
+#. Plugin URI of the plugin
+msgid "https://github.com/Ekt0re/FAQ-Manager-Easy-WordPress"
+msgstr "https://github.com/Ekt0re/FAQ-Manager-Easy-WordPress"
+
+#. Description of the plugin
+msgid "Create and manage your custom FAQs on WordPress with a simple and intuitive GUI! Multilingual support included."
+msgstr "Crea y gestiona tus preguntas frecuentes personalizadas en WordPress con una interfaz gráfica sencilla e intuitiva. ¡Soporte multilingüe incluido!"
+
+#. Author of the plugin
+msgid "Ettore Sartori"
+msgstr "Ettore Sartori"
+
+#. Author URI of the plugin
+msgid "https://www.instagram.com/ettore_sartori/"
+msgstr "https://www.instagram.com/ettore_sartori/"
+
+msgid "FAQ Management"
+msgstr "Gestión de Preguntas Frecuentes"
+
+msgid "FAQ Manager"
+msgstr "Gestor de Preguntas Frecuentes"
+
+msgid "Language:"
+msgstr "Idioma:"
+
+msgid "FAQ Items List"
+msgstr "Lista de Preguntas Frecuentes"
+
+msgid "Search"
+msgstr "Buscar"
+
+msgid "New"
+msgstr "Nuevo"
+
+msgid "Name"
+msgstr "Nombre"
+
+msgid "Actions"
+msgstr "Acciones"
+
+msgid "Edit"
+msgstr "Editar"
+
+msgid "Delete"
+msgstr "Eliminar"
+
+msgid "No FAQs found."
+msgstr "No se encontraron preguntas frecuentes."
+
+msgid "Add New FAQ"
+msgstr "Añadir Nueva Pregunta Frecuente"
+
+msgid "Question"
+msgstr "Pregunta"
+
+msgid "Answer"
+msgstr "Respuesta"
+
+msgid "Custom CSS"
+msgstr "CSS Personalizado"
+
+msgid "Add custom CSS for this FAQ item (optional)"
+msgstr "Añadir CSS personalizado para esta pregunta frecuente (opcional)"
+
+msgid "Save FAQ"
+msgstr "Guardar Pregunta Frecuente"
+
+msgid "Cancel"
+msgstr "Cancelar"
+
+msgid "Visual Customization"
+msgstr "Personalización Visual"
+
+msgid "Import from Theme"
+msgstr "Importar del Tema"
+
+msgid "Import colors from active theme"
+msgstr "Importar colores del tema activo"
+
+msgid "Question background color"
+msgstr "Color de fondo de la pregunta"
+
+msgid "Question text color"
+msgstr "Color del texto de la pregunta"
+
+msgid "Answer background color"
+msgstr "Color de fondo de la respuesta"
+
+msgid "Answer text color"
+msgstr "Color del texto de la respuesta"
+
+msgid "Border color"
+msgstr "Color del borde"
+
+msgid "Active question background color"
+msgstr "Color de fondo de la pregunta activa"
+
+msgid "Hover background color"
+msgstr "Color de fondo al pasar el ratón"
+
+msgid "Maximum answer height (px)"
+msgstr "Altura máxima de la respuesta (px)"
+
+msgid "Preview"
+msgstr "Vista previa"
+
+msgid "Sample Question"
+msgstr "Pregunta de Ejemplo"
+
+msgid "This is a sample answer. The appearance of FAQs on your site will follow the style settings you choose above."
+msgstr "Esta es una respuesta de ejemplo. La apariencia de las preguntas frecuentes en su sitio seguirá la configuración de estilo que elija arriba."
+
+msgid "Save Settings"
+msgstr "Guardar Configuración"
+
+msgid "Shortcode Usage"
+msgstr "Uso del Shortcode"
+
+msgid "Use the following shortcode to display FAQs on your posts or pages:"
+msgstr "Utilice el siguiente shortcode para mostrar las preguntas frecuentes en sus posts o páginas:"
+
+msgid "Shortcode Parameters"
+msgstr "Parámetros del Shortcode"
+
+msgid "Number of FAQs to display (default: all)"
+msgstr "Número de preguntas frecuentes a mostrar (predeterminado: todas)"
+
+msgid "Sort by field (default: title)"
+msgstr "Ordenar por campo (predeterminado: título)"
+
+msgid "Sort order (default: ASC)"
+msgstr "Orden de clasificación (predeterminado: ASC)"
+
+msgid "Comma-separated list of FAQ IDs to display"
+msgstr "Lista separada por comas de IDs de preguntas frecuentes a mostrar"
+
+msgid "Example"
+msgstr "Ejemplo"
+
+msgid "Plugin Information"
+msgstr "Información del Plugin"
+
+msgid "Developed by"
+msgstr "Desarrollado por"
+
+msgid "Visit GitHub repository"
+msgstr "Visitar el repositorio GitHub"
+
+msgid "License"
+msgstr "Licencia" 

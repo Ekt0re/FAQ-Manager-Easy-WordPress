@@ -2,13 +2,14 @@
 /**
  * Plugin Name: Custom Easy FAQ Manager
  * Plugin URI: https://github.com/Ekt0re/FAQ-Manager-Easy-WordPress
- * Description: Crea e gestisci facilmente le tue FAQ personalizzate su WordPress con una GUI semplice ed intuitiva!
- * Version: 1.2
+ * Description: Create and manage your custom FAQs on WordPress with a simple and intuitive GUI! Multilingual support included.
+ * Version: 1.3
  * Author: Ettore Sartori
  * Author URI: https://www.instagram.com/ettore_sartori/
  * License: GPLv3
  * License URI: https://www.gnu.org/licenses/gpl-3.0.html
  * Text Domain: custom-faq-manager
+ * Domain Path: /languages
  */
 
 // Exit if accessed directly
@@ -19,53 +20,42 @@ if (!defined('ABSPATH')) {
 class Custom_FAQ_Manager {
     
     /**
+     * Supported languages
+     */
+    private $supported_languages = array(
+        'en_US' => 'English',
+        'it_IT' => 'Italiano',
+        'es_ES' => 'Español',
+        'fr_FR' => 'Français',
+        'de_DE' => 'Deutsch',
+        'ru_RU' => 'Русский',
+        'vi'    => 'Tiếng Việt'
+    );
+    
+    /**
+     * Current language
+     */
+    private $current_language = 'en_US';
+    
+    /**
      * Debug AJAX errors - Attivabile via wp-config.php
      * Utile per debug di errori AJAX 400 (Bad Request)
      */
     private function debug_ajax_errors() {
-        // Disabilitato temporaneamente per evitare errori 500
+        // Disabilitato per il rilascio pubblico
         return;
-        
-        /*
-        // Controlla se è stata definita la costante di debug AJAX
-        if (defined('WP_DEBUG') && WP_DEBUG && defined('WP_DEBUG_AJAX_ERRORS') && WP_DEBUG_AJAX_ERRORS) {
-            // Registra gli hook per aggiungere informazioni di debug alle risposte AJAX
-            add_filter('wp_doing_ajax', function($is_doing_ajax) {
-                // Log delle richieste AJAX
-                if ($is_doing_ajax) {
-                    error_log('DEBUG AJAX REQUEST: ' . print_r($_REQUEST, true));
-                }
-                return $is_doing_ajax;
-            });
-            
-            // Aggiungi handler per gestire gli errori 400 Bad Request
-            add_action('wp_ajax_nopriv_get_faq', function() {
-                error_log('AJAX get_faq chiamato ma non registrato - utente non loggato');
-            }, 1);
-            
-            // Debug dell'hook wp_ajax_ per verificare se l'azione viene registrata correttamente
-            add_action('admin_init', function() {
-                if (isset($_REQUEST['debug_ajax_hooks']) && current_user_can('manage_options')) {
-                    global $wp_filter;
-                    if (isset($wp_filter['wp_ajax_get_faq'])) {
-                        echo '<pre>Debug hook wp_ajax_get_faq: ';
-                        print_r($wp_filter['wp_ajax_get_faq']);
-                        echo '</pre>';
-                        exit;
-                    } else {
-                        echo 'Hook wp_ajax_get_faq non registrato!';
-                        exit;
-                    }
-                }
-            });
-        }
-        */
     }
 
     /**
      * Constructor
      */
     public function __construct() {
+        // Load text domain for translations
+        add_action('plugins_loaded', array($this, 'load_plugin_textdomain'));
+        
+        // Set current language
+        $this->set_current_language();
+        
         // Register custom post type
         add_action('init', array($this, 'register_faq_post_type'));
         
@@ -90,6 +80,61 @@ class Custom_FAQ_Manager {
     }
     
     /**
+     * Load plugin textdomain
+     */
+    public function load_plugin_textdomain() {
+        load_plugin_textdomain('custom-faq-manager', false, dirname(plugin_basename(__FILE__)) . '/languages');
+    }
+    
+    /**
+     * Set current language based on user preference or WordPress locale
+     */
+    private function set_current_language() {
+        // Check if user has selected a language manually
+        if (isset($_COOKIE['custom_faq_language'])) {
+            $selected_language = sanitize_text_field(wp_unslash($_COOKIE['custom_faq_language']));
+            if (array_key_exists($selected_language, $this->supported_languages)) {
+                $this->current_language = $selected_language;
+                return;
+            }
+        }
+        
+        // Otherwise use WordPress locale
+        $locale = get_locale();
+        
+        // Check if the locale is supported
+        if (array_key_exists($locale, $this->supported_languages)) {
+            $this->current_language = $locale;
+        } else {
+            // Try to match the language part of the locale
+            $language_part = substr($locale, 0, 2);
+            foreach (array_keys($this->supported_languages) as $supported_locale) {
+                if (substr($supported_locale, 0, 2) == $language_part) {
+                    $this->current_language = $supported_locale;
+                    return;
+                }
+            }
+            
+            // Default to English if no match found
+            $this->current_language = 'en_US';
+        }
+    }
+
+    /**
+     * Get supported languages
+     */
+    public function get_supported_languages() {
+        return $this->supported_languages;
+    }
+    
+    /**
+     * Get current language
+     */
+    public function get_current_language() {
+        return $this->current_language;
+    }
+    
+    /**
      * Register custom post type for FAQs
      */
     public function register_faq_post_type() {
@@ -98,15 +143,15 @@ class Custom_FAQ_Manager {
             'singular_name'      => _x('FAQ', 'post type singular name', 'custom-faq-manager'),
             'menu_name'          => _x('FAQs', 'admin menu', 'custom-faq-manager'),
             'name_admin_bar'     => _x('FAQ', 'add new on admin bar', 'custom-faq-manager'),
-            'add_new'            => _x('Aggiungi Nuova', 'faq', 'custom-faq-manager'),
-            'add_new_item'       => __('Aggiungi Nuova FAQ', 'custom-faq-manager'),
-            'new_item'           => __('Nuova FAQ', 'custom-faq-manager'),
-            'edit_item'          => __('Modifica FAQ', 'custom-faq-manager'),
-            'view_item'          => __('Visualizza FAQ', 'custom-faq-manager'),
-            'all_items'          => __('Tutte le FAQ', 'custom-faq-manager'),
-            'search_items'       => __('Cerca FAQ', 'custom-faq-manager'),
-            'not_found'          => __('Nessuna FAQ trovata.', 'custom-faq-manager'),
-            'not_found_in_trash' => __('Nessuna FAQ trovata nel cestino.', 'custom-faq-manager')
+            'add_new'            => _x('Add New', 'faq', 'custom-faq-manager'),
+            'add_new_item'       => __('Add New FAQ', 'custom-faq-manager'),
+            'new_item'           => __('New FAQ', 'custom-faq-manager'),
+            'edit_item'          => __('Edit FAQ', 'custom-faq-manager'),
+            'view_item'          => __('View FAQ', 'custom-faq-manager'),
+            'all_items'          => __('All FAQs', 'custom-faq-manager'),
+            'search_items'       => __('Search FAQs', 'custom-faq-manager'),
+            'not_found'          => __('No FAQs found.', 'custom-faq-manager'),
+            'not_found_in_trash' => __('No FAQs found in trash.', 'custom-faq-manager')
         );
         
         $args = array(
@@ -133,7 +178,7 @@ class Custom_FAQ_Manager {
      */
     public function add_admin_menu() {
         add_menu_page(
-            __('Gestione FAQ', 'custom-faq-manager'),
+            __('FAQ Management', 'custom-faq-manager'),
             __('FAQ Manager', 'custom-faq-manager'),
             'manage_options',
             'custom-faq-manager',
@@ -243,26 +288,40 @@ class Custom_FAQ_Manager {
         ));
         ?>
         <div class="wrap">
-            <h1><?php esc_html_e('Gestione FAQ', 'custom-faq-manager'); ?></h1>
+            <h1><?php esc_html_e('FAQ Management', 'custom-faq-manager'); ?></h1>
+            
+            <div class="language-selector" style="margin-bottom: 20px; text-align: right;">
+                <form id="language-selector-form">
+                    <label for="language-selector"><?php esc_html_e('Language:', 'custom-faq-manager'); ?></label>
+                    <select id="language-selector" name="language">
+                        <?php 
+                        foreach ($this->get_supported_languages() as $code => $name) {
+                            $selected = ($code === $this->get_current_language()) ? 'selected' : '';
+                            echo '<option value="' . esc_attr($code) . '" ' . esc_attr($selected) . '>' . esc_html($name) . '</option>';
+                        }
+                        ?>
+                    </select>
+                </form>
+            </div>
             
             <div class="faq-container">
                 <div class="faq-list-container">
-                    <h2><?php esc_html_e('Lista Elementi FAQ', 'custom-faq-manager'); ?></h2>
+                    <h2><?php esc_html_e('FAQ Items List', 'custom-faq-manager'); ?></h2>
                     
                     <div class="faq-toolbar">
                         <div class="faq-search">
-                            <input type="text" id="faq-search" placeholder="<?php esc_attr_e('Cerca', 'custom-faq-manager'); ?>">
+                            <input type="text" id="faq-search" placeholder="<?php esc_attr_e('Search', 'custom-faq-manager'); ?>">
                             <button id="search-btn" class="button"><span class="dashicons dashicons-search"></span></button>
                         </div>
-                        <button id="new-faq-btn" class="button button-primary"><?php esc_html_e('Nuovo', 'custom-faq-manager'); ?></button>
+                        <button id="new-faq-btn" class="button button-primary"><?php esc_html_e('New', 'custom-faq-manager'); ?></button>
                     </div>
                     
                     <div class="faq-list">
                         <table class="widefat">
                             <thead>
                                 <tr>
-                                    <th><?php esc_html_e('Nome', 'custom-faq-manager'); ?></th>
-                                    <th><?php esc_html_e('Azioni', 'custom-faq-manager'); ?></th>
+                                    <th><?php esc_html_e('Name', 'custom-faq-manager'); ?></th>
+                                    <th><?php esc_html_e('Actions', 'custom-faq-manager'); ?></th>
                                 </tr>
                             </thead>
                             <tbody id="faq-list-body">
@@ -280,8 +339,8 @@ class Custom_FAQ_Manager {
                                         <tr data-id="<?php echo esc_attr($faq->ID); ?>">
                                             <td class="faq-title"><?php echo esc_html($faq->post_title); ?></td>
                                             <td class="faq-actions">
-                                                <button class="edit-faq button" data-id="<?php echo esc_attr($faq->ID); ?>"><?php esc_html_e('Modifica', 'custom-faq-manager'); ?></button>
-                                                <button class="delete-faq button" data-id="<?php echo esc_attr($faq->ID); ?>"><?php esc_html_e('Elimina', 'custom-faq-manager'); ?></button>
+                                                <button class="edit-faq button" data-id="<?php echo esc_attr($faq->ID); ?>"><?php esc_html_e('Edit', 'custom-faq-manager'); ?></button>
+                                                <button class="delete-faq button" data-id="<?php echo esc_attr($faq->ID); ?>"><?php esc_html_e('Delete', 'custom-faq-manager'); ?></button>
                                             </td>
                                         </tr>
                                         <?php
@@ -289,7 +348,7 @@ class Custom_FAQ_Manager {
                                 } else {
                                     ?>
                                     <tr class="no-items">
-                                        <td colspan="2"><?php esc_html_e('Nessuna FAQ trovata.', 'custom-faq-manager'); ?></td>
+                                        <td colspan="2"><?php esc_html_e('No FAQs found.', 'custom-faq-manager'); ?></td>
                                     </tr>
                                     <?php
                                 }
@@ -299,139 +358,135 @@ class Custom_FAQ_Manager {
                     </div>
                 </div>
                 
-                <div class="faq-editor" id="faq-editor">
-                    <h2 id="editor-title"><?php esc_html_e('Aggiungi Nuova FAQ', 'custom-faq-manager'); ?></h2>
-                    
-                    <form id="faq-form">
-                        <input type="hidden" id="faq-id" value="">
-                        
-                        <div class="form-field">
-                            <label for="faq-title"><?php esc_html_e('Domanda', 'custom-faq-manager'); ?></label>
-                            <input type="text" id="faq-title" name="faq-title" required>
+                <div id="faq-editor" class="postbox">
+                    <h2 id="editor-title" class="hndle"><?php esc_html_e('Add New FAQ', 'custom-faq-manager'); ?></h2>
+                    <div class="inside">
+                        <form id="faq-form">
+                            <input type="hidden" id="faq-id" value="">
+                            
+                            <div class="form-field">
+                                <label for="faq-title"><?php esc_html_e('Question', 'custom-faq-manager'); ?></label>
+                                <input type="text" id="faq-title" name="title" class="widefat">
+                            </div>
+                            
+                            <div class="form-field">
+                                <label for="faq-content"><?php esc_html_e('Answer', 'custom-faq-manager'); ?></label>
+                                <?php 
+                                wp_editor('', 'faq-content', array(
+                                    'textarea_name' => 'content',
+                                    'media_buttons' => true,
+                                    'textarea_rows' => 8
+                                )); 
+                                ?>
+                            </div>
+                            
+                            <div class="form-field">
+                                <label for="faq-css"><?php esc_html_e('Custom CSS', 'custom-faq-manager'); ?></label>
+                                <textarea id="faq-css" name="css" class="widefat" rows="5" placeholder="<?php esc_attr_e('Add custom CSS for this FAQ item (optional)', 'custom-faq-manager'); ?>"></textarea>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="submit" class="button button-primary"><?php esc_html_e('Save FAQ', 'custom-faq-manager'); ?></button>
+                                <button id="cancel-edit" class="button"><?php esc_html_e('Cancel', 'custom-faq-manager'); ?></button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="faq-settings-container">
+                    <h2><?php esc_html_e('Visual Customization', 'custom-faq-manager'); ?></h2>
+                    <form id="faq-settings-form">
+                        <div class="settings-actions" style="margin-bottom: 15px;">
+                            <button type="button" id="import-theme-colors" class="button"><?php esc_html_e('Import from Theme', 'custom-faq-manager'); ?></button>
+                            <span class="settings-info" style="margin-left: 10px; font-style: italic;"><?php esc_html_e('Import colors from active theme', 'custom-faq-manager'); ?></span>
                         </div>
                         
-                        <div class="form-field">
-                            <label for="faq-content"><?php esc_html_e('Risposta', 'custom-faq-manager'); ?></label>
-                            <?php
-                            wp_editor('', 'faq-content', array(
-                                'media_buttons' => true,
-                                'textarea_rows' => 10,
-                                'teeny'         => false
-                            ));
-                            ?>
+                        <div class="settings-grid">
+                            <div class="form-field">
+                                <label for="question_bg_color"><?php esc_html_e('Question background color', 'custom-faq-manager'); ?></label>
+                                <input type="color" id="question_bg_color" name="question_bg_color" value="<?php echo esc_attr($settings['question_bg_color']); ?>">
+                            </div>
+                            
+                            <div class="form-field">
+                                <label for="question_text_color"><?php esc_html_e('Question text color', 'custom-faq-manager'); ?></label>
+                                <input type="color" id="question_text_color" name="question_text_color" value="<?php echo esc_attr($settings['question_text_color']); ?>">
+                            </div>
+                            
+                            <div class="form-field">
+                                <label for="answer_bg_color"><?php esc_html_e('Answer background color', 'custom-faq-manager'); ?></label>
+                                <input type="color" id="answer_bg_color" name="answer_bg_color" value="<?php echo esc_attr($settings['answer_bg_color']); ?>">
+                            </div>
+                            
+                            <div class="form-field">
+                                <label for="answer_text_color"><?php esc_html_e('Answer text color', 'custom-faq-manager'); ?></label>
+                                <input type="color" id="answer_text_color" name="answer_text_color" value="<?php echo esc_attr($settings['answer_text_color']); ?>">
+                            </div>
+                            
+                            <div class="form-field">
+                                <label for="border_color"><?php esc_html_e('Border color', 'custom-faq-manager'); ?></label>
+                                <input type="color" id="border_color" name="border_color" value="<?php echo esc_attr($settings['border_color']); ?>">
+                            </div>
+                            
+                            <div class="form-field">
+                                <label for="active_question_bg_color"><?php esc_html_e('Active question background color', 'custom-faq-manager'); ?></label>
+                                <input type="color" id="active_question_bg_color" name="active_question_bg_color" value="<?php echo esc_attr($settings['active_question_bg_color']); ?>">
+                            </div>
+                            
+                            <div class="form-field">
+                                <label for="hover_bg_color"><?php esc_html_e('Hover background color', 'custom-faq-manager'); ?></label>
+                                <input type="color" id="hover_bg_color" name="hover_bg_color" value="<?php echo esc_attr($settings['hover_bg_color']); ?>">
+                            </div>
+                            
+                            <div class="form-field">
+                                <label for="answer_max_height"><?php esc_html_e('Maximum answer height (px)', 'custom-faq-manager'); ?></label>
+                                <input type="number" id="answer_max_height" name="answer_max_height" min="0" max="500" value="<?php echo esc_attr($settings['answer_max_height']); ?>">
+                            </div>
                         </div>
                         
-                        <div class="form-field">
-                            <label><?php esc_html_e('Stile Custom', 'custom-faq-manager'); ?></label>
-                            <textarea id="faq-css" name="faq-css" placeholder="<?php esc_attr_e('CSS personalizzato per questa FAQ', 'custom-faq-manager'); ?>"></textarea>
+                        <div class="preview-container" style="margin-top: 20px;">
+                            <h3><?php esc_html_e('Preview', 'custom-faq-manager'); ?></h3>
+                            <div id="faq-preview-item">
+                                <div id="faq-preview-question"><?php esc_html_e('Sample Question', 'custom-faq-manager'); ?></div>
+                                <div id="faq-preview-answer">
+                                    <p><?php esc_html_e('This is a sample answer. The appearance of FAQs on your site will follow the style settings you choose above.', 'custom-faq-manager'); ?></p>
+                                </div>
+                            </div>
                         </div>
                         
-                        <div class="form-actions">
-                            <button type="submit" class="button button-primary"><?php esc_html_e('Salva FAQ', 'custom-faq-manager'); ?></button>
-                            <button type="button" id="cancel-edit" class="button"><?php esc_html_e('Annulla', 'custom-faq-manager'); ?></button>
+                        <div id="settings-status" style="margin-top: 15px; padding: 10px; display: none;"></div>
+                        
+                        <div class="settings-actions" style="margin-top: 15px;">
+                            <button type="submit" class="button button-primary"><?php esc_html_e('Save Settings', 'custom-faq-manager'); ?></button>
                         </div>
                     </form>
                 </div>
-            </div>
-            
-            <div class="faq-settings-container">
-                <h2><?php esc_html_e('Personalizzazione Grafica', 'custom-faq-manager'); ?></h2>
-                <form id="faq-settings-form">
-                    <div class="settings-actions" style="margin-bottom: 15px;">
-                        <button type="button" id="import-theme-colors" class="button"><?php esc_html_e('Importa dal Tema', 'custom-faq-manager'); ?></button>
-                        <span class="settings-info" style="margin-left: 10px; font-style: italic;"><?php esc_html_e('Importa i colori dal tema attivo', 'custom-faq-manager'); ?></span>
-                    </div>
-                    
-                    <div class="settings-grid">
-                        <div class="form-field">
-                            <label for="question_bg_color"><?php esc_html_e('Colore sfondo domanda', 'custom-faq-manager'); ?></label>
-                            <input type="color" id="question_bg_color" name="question_bg_color" value="<?php echo esc_attr($settings['question_bg_color']); ?>">
-                        </div>
-                        
-                        <div class="form-field">
-                            <label for="question_text_color"><?php esc_html_e('Colore testo domanda', 'custom-faq-manager'); ?></label>
-                            <input type="color" id="question_text_color" name="question_text_color" value="<?php echo esc_attr($settings['question_text_color']); ?>">
-                        </div>
-                        
-                        <div class="form-field">
-                            <label for="answer_bg_color"><?php esc_html_e('Colore sfondo risposta', 'custom-faq-manager'); ?></label>
-                            <input type="color" id="answer_bg_color" name="answer_bg_color" value="<?php echo esc_attr($settings['answer_bg_color']); ?>">
-                        </div>
-                        
-                        <div class="form-field">
-                            <label for="answer_text_color"><?php esc_html_e('Colore testo risposta', 'custom-faq-manager'); ?></label>
-                            <input type="color" id="answer_text_color" name="answer_text_color" value="<?php echo esc_attr($settings['answer_text_color']); ?>">
-                        </div>
-                        
-                        <div class="form-field">
-                            <label for="border_color"><?php esc_html_e('Colore bordo', 'custom-faq-manager'); ?></label>
-                            <input type="color" id="border_color" name="border_color" value="<?php echo esc_attr($settings['border_color']); ?>">
-                        </div>
-                        
-                        <div class="form-field">
-                            <label for="active_question_bg_color"><?php esc_html_e('Colore sfondo domanda attiva', 'custom-faq-manager'); ?></label>
-                            <input type="color" id="active_question_bg_color" name="active_question_bg_color" value="<?php echo esc_attr($settings['active_question_bg_color']); ?>">
-                        </div>
-                        
-                        <div class="form-field">
-                            <label for="hover_bg_color"><?php esc_html_e('Colore sfondo hover', 'custom-faq-manager'); ?></label>
-                            <input type="color" id="hover_bg_color" name="hover_bg_color" value="<?php echo esc_attr($settings['hover_bg_color']); ?>">
-                        </div>
-                        
-                        <div class="form-field">
-                            <label for="answer_max_height"><?php esc_html_e('Altezza massima risposta chiusa (px)', 'custom-faq-manager'); ?></label>
-                            <input type="number" id="answer_max_height" name="answer_max_height" min="0" max="500" value="<?php echo esc_attr($settings['answer_max_height']); ?>">
-                        </div>
-                    </div>
-                    
-                    <div class="form-actions">
-                        <button type="submit" class="button button-primary"><?php esc_html_e('Salva Impostazioni', 'custom-faq-manager'); ?></button>
-                        <div id="settings-status" style="display: none; margin-left: 10px; padding: 5px 10px; background-color: #dff0d8; color: #3c763d; border-radius: 3px;">
-                            <?php esc_html_e('Modifiche salvate con successo!', 'custom-faq-manager'); ?>
-                        </div>
-                    </div>
-                </form>
                 
-                <div class="settings-preview" style="margin-top: 20px; border: 1px solid #ddd; border-radius: 5px; padding: 15px; background: #f9f9f9;">
-                    <h3><?php esc_html_e('Anteprima in tempo reale', 'custom-faq-manager'); ?> <span class="settings-info"><?php esc_html_e('(clicca sulla domanda per aprire/chiudere)', 'custom-faq-manager'); ?></span></h3>
-                    <div id="faq-preview-item" class="faq-item" style="margin-bottom: 0;">
-                        <div id="faq-preview-question" class="faq-question">
-                            <?php esc_html_e('Esempio di domanda', 'custom-faq-manager'); ?>
-                        </div>
-                        <div id="faq-preview-answer" class="faq-answer">
-                            <p><?php esc_html_e('Questo è un esempio di risposta. Le modifiche ai colori verranno mostrate in tempo reale qui.', 'custom-faq-manager'); ?></p>
-                            <p><?php esc_html_e('Puoi verificare anche come appare il testo su più righe e controllare l\'altezza massima impostata.', 'custom-faq-manager'); ?></p>
-                        </div>
-                    </div>
+                <div class="shortcode-info">
+                    <h2><?php esc_html_e('Shortcode Usage', 'custom-faq-manager'); ?></h2>
+                    <p><?php esc_html_e('Use the following shortcode to display FAQs on your posts or pages:', 'custom-faq-manager'); ?></p>
+                    <code>[custom_faq]</code>
+                    
+                    <h3><?php esc_html_e('Shortcode Parameters', 'custom-faq-manager'); ?></h3>
+                    <ul>
+                        <li><code>limit</code> - <?php esc_html_e('Number of FAQs to display (default: all)', 'custom-faq-manager'); ?></li>
+                        <li><code>orderby</code> - <?php esc_html_e('Sort by field (default: title)', 'custom-faq-manager'); ?></li>
+                        <li><code>order</code> - <?php esc_html_e('Sort order (default: ASC)', 'custom-faq-manager'); ?></li>
+                        <li><code>selectedFaqs</code> - <?php esc_html_e('Comma-separated list of FAQ IDs to display', 'custom-faq-manager'); ?></li>
+                    </ul>
+                    
+                    <h4><?php esc_html_e('Example', 'custom-faq-manager'); ?></h4>
+                    <code>[custom_faq limit="5" orderby="date" order="DESC"]</code>
                 </div>
-            </div>
-            
-            <div class="faq-shortcode-info">
-                <h3><?php esc_html_e('Shortcode', 'custom-faq-manager'); ?></h3>
-                <p><?php esc_html_e('Usa questo shortcode per visualizzare le FAQ sul tuo sito:', 'custom-faq-manager'); ?></p>
-                <code>[custom_faq]</code>
                 
-                <h4><?php esc_html_e('Opzioni Shortcode', 'custom-faq-manager'); ?></h4>
-                <ul>
-                    <li><code>limit</code>: <?php esc_html_e('Numero di FAQ da mostrare (default: tutte)', 'custom-faq-manager'); ?></li>
-                    <li><code>orderby</code>: <?php esc_html_e('Ordinamento (title, date - default: title)', 'custom-faq-manager'); ?></li>
-                    <li><code>order</code>: <?php esc_html_e('Direzione ordinamento (ASC, DESC - default: ASC)', 'custom-faq-manager'); ?></li>
-                    <li><code>selected_faqs</code>: <?php esc_html_e('IDs delle FAQ specifiche da mostrare (es. "1,4,7")', 'custom-faq-manager'); ?></li>
-                </ul>
-                <p><?php esc_html_e('Esempio:', 'custom-faq-manager'); ?> <code>[custom_faq limit="5" orderby="date" order="DESC"]</code></p>
-                
-                <h3><?php esc_html_e('Blocco Gutenberg', 'custom-faq-manager'); ?></h3>
-                <p><?php esc_html_e('Puoi anche aggiungere le FAQ utilizzando il blocco Gutenberg "FAQ". Cercalo nell\'editor di WordPress.', 'custom-faq-manager'); ?></p>
-            </div>
-            
-            <div class="faq-author-info">
-                <h3><?php esc_html_e('Informazioni sul Plugin', 'custom-faq-manager'); ?></h3>
-                <p>
-                    <strong>Custom Easy FAQ Manager</strong> v1.1<br>
-                    <?php esc_html_e('Sviluppato da', 'custom-faq-manager'); ?> <a href="https://www.instagram.com/ettore_sartori/" target="_blank">Ettore Sartori</a><br>
-                    <a href="https://github.com/Ekt0re/FAQ-Manager-Easy-WordPress" target="_blank"><?php esc_html_e('Visita il repository GitHub', 'custom-faq-manager'); ?></a><br>
-                    <?php esc_html_e('Licenza', 'custom-faq-manager'); ?>: <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank">GPLv3</a>
-                </p>
+                <div class="faq-author-info">
+                    <h3><?php esc_html_e('Plugin Information', 'custom-faq-manager'); ?></h3>
+                    <p>
+                        <strong>Custom Easy FAQ Manager</strong> v1.3<br>
+                        <?php esc_html_e('Developed by', 'custom-faq-manager'); ?> <a href="https://www.instagram.com/ettore_sartori/" target="_blank">Ettore Sartori</a><br>
+                        <a href="https://github.com/Ekt0re/FAQ-Manager-Easy-WordPress" target="_blank"><?php esc_html_e('Visit GitHub repository', 'custom-faq-manager'); ?></a><br>
+                        <?php esc_html_e('License', 'custom-faq-manager'); ?>: <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank">GPLv3</a>
+                    </p>
+                </div>
             </div>
         </div>
         <?php

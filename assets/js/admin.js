@@ -765,4 +765,15 @@ jQuery(document).ready(function($) {
     });
     
     // ----- FINE: Nuove funzioni per la personalizzazione grafica -----
+
+    // Gestione cambio lingua
+    $("#language-selector").on('change', function() {
+        var selectedLanguage = $(this).val();
+        
+        // Salva la preferenza nei cookie
+        document.cookie = "custom_faq_language=" + selectedLanguage + "; path=/; max-age=31536000"; // 1 anno
+        
+        // Ricarica la pagina per applicare la nuova lingua
+        location.reload();
+    });
 });

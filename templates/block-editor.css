@@ -1,0 +1,56 @@
+/**
+ * Custom FAQ Manager - Block Editor Styles
+ */
+
+.wp-block-custom-faq-manager-faq-block {
+    padding: 1em;
+    background: #f8f8f8;
+    border: 1px dashed #ccc;
+    border-radius: 5px;
+}
+
+.faq-block-title {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #23282d;
+}
+
+.faq-block-description {
+    margin-bottom: 15px;
+    font-size: 0.9em;
+    color: #666;
+}
+
+.faq-block-options {
+    background: #ffffff;
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+.faq-block-option {
+    display: flex;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+.faq-block-option label {
+    flex: 0 0 120px;
+    font-weight: 500;
+}
+
+.faq-block-option .components-select-control__input,
+.faq-block-option .components-range-control__number {
+    width: 100%;
+}
+
+.faq-preview-notice {
+    font-style: italic;
+    color: #666;
+    font-size: 0.9em;
+    margin-top: 10px;
+} 

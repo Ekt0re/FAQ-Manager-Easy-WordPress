@@ -1,0 +1,104 @@
+# Copyright (C) 2023 Ettore Sartori
+# This file is distributed under the GPLv3.
+msgid ""
+msgstr ""
+"Project-Id-Version: Custom Easy FAQ Manager 1.1\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/custom-easy-faq-manager\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2023-12-01T12:00:00+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.7.1\n"
+"X-Domain: custom-faq-manager\n"
+
+#. Plugin Name of the plugin
+msgid "Custom Easy FAQ Manager"
+msgstr ""
+
+#. Plugin URI of the plugin
+msgid "https://github.com/Ekt0re/FAQ-Manager-Easy-WordPress"
+msgstr ""
+
+#. Description of the plugin
+msgid "Crea e gestisci facilmente le tue FAQ personalizzate su WordPress con una GUI semplice ed intuitiva!"
+msgstr ""
+
+#. Author of the plugin
+msgid "Ettore Sartori"
+msgstr ""
+
+#: custom-easy-faq-manager.php:95
+msgctxt "post type general name"
+msgid "FAQs"
+msgstr ""
+
+#: custom-easy-faq-manager.php:96
+msgctxt "post type singular name"
+msgid "FAQ"
+msgstr ""
+
+#: custom-easy-faq-manager.php:97
+msgctxt "admin menu"
+msgid "FAQs"
+msgstr ""
+
+#: custom-easy-faq-manager.php:98
+msgctxt "add new on admin bar"
+msgid "FAQ"
+msgstr ""
+
+#: custom-easy-faq-manager.php:99
+msgctxt "faq"
+msgid "Aggiungi Nuova"
+msgstr ""
+
+#: custom-easy-faq-manager.php:100
+msgid "Aggiungi Nuova FAQ"
+msgstr ""
+
+#: custom-easy-faq-manager.php:101
+msgid "Nuova FAQ"
+msgstr ""
+
+#: custom-easy-faq-manager.php:102
+msgid "Modifica FAQ"
+msgstr ""
+
+#: custom-easy-faq-manager.php:103
+msgid "Visualizza FAQ"
+msgstr ""
+
+#: custom-easy-faq-manager.php:104
+msgid "Tutte le FAQ"
+msgstr ""
+
+#: custom-easy-faq-manager.php:105
+msgid "Cerca FAQ"
+msgstr ""
+
+#: custom-easy-faq-manager.php:106
+msgid "Nessuna FAQ trovata."
+msgstr ""
+
+#: custom-easy-faq-manager.php:107
+msgid "Nessuna FAQ trovata nel cestino."
+msgstr ""
+
+#: custom-easy-faq-manager.php:135
+msgid "Gestione FAQ"
+msgstr ""
+
+#: custom-easy-faq-manager.php:136
+msgid "FAQ Manager"
+msgstr ""
+
+#: includes/class-faq-settings.php:105
+msgid "Impostazioni salvate con successo."
+msgstr ""
+
+#: includes/class-faq-settings.php:117
+msgid "Si è verificato un errore durante il salvataggio delle impostazioni."
+msgstr "" 

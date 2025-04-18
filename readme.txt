@@ -1,5 +1,5 @@
 === Custom Easy FAQ Manager ===
-Contributors: ettore sartori
+Contributors: ektore
 Tags: faq, accordion, frequently asked questions, questions, answers, gutenberg
 Requires at least: 5.0
 Tested up to: 6.4

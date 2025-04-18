@@ -1,12 +1,13 @@
 === Custom Easy FAQ Manager ===
 Contributors: ektore
-Tags: faq, accordion, frequently asked questions, questions, answers, gutenberg
+Tags: faq, accordion, frequently asked questions, questions, answers
 Requires at least: 5.0
 Tested up to: 6.4
 Stable tag: 1.1
 Requires PHP: 7.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
+Donate link: https://ko-fi.com/ekt0re
 
 Crea e gestisci facilmente le tue FAQ personalizzate su WordPress con una GUI semplice ed intuitiva!
 

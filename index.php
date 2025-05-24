@@ -1,3 +1,6 @@
 <?php
-// Silenzio è d'oro.
+// Silence is golden.
+if (!defined('ABSPATH')) {
+    exit;
+}
 ?> 

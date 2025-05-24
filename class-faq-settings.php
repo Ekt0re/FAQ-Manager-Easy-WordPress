@@ -3,20 +3,20 @@
 /**
  * FAQ Settings
  */
-class FAQ_Settings {
+class CEAFM_Settings {
 
     /**
      * Save FAQ Settings
      */
     public function save_faq_settings() {
         // Verifica nonce
-        if (!isset($_POST['custom_faq_nonce']) || !wp_verify_nonce(sanitize_key(wp_unslash($_POST['custom_faq_nonce'])), 'custom_faq_settings')) {
-            wp_die(esc_html__('Verifica di sicurezza fallita. Riprova.', 'custom-faq-manager'));
+        if (!isset($_POST['ceafm_nonce']) || !wp_verify_nonce(sanitize_key(wp_unslash($_POST['ceafm_nonce'])), 'ceafm_settings')) {
+            wp_die(esc_html__('Verifica di sicurezza fallita. Riprova.', 'FAQ-Manager-Easy-WordPress'));
         }
         
         // Verifica i permessi
         if (!current_user_can('manage_options')) {
-            wp_die(esc_html__('Non hai i permessi necessari per modificare queste impostazioni.', 'custom-faq-manager'));
+            wp_die(esc_html__('Non hai i permessi necessari per modificare queste impostazioni.', 'FAQ-Manager-Easy-WordPress'));
         }
         
         // Inizializza array delle impostazioni
@@ -45,10 +45,10 @@ class FAQ_Settings {
         }
         
         // Salva le impostazioni
-        update_option('custom_faq_settings', $settings);
+        update_option('ceafm_settings', $settings);
         
         // Reindirizza e mostra messaggio di conferma
-        wp_safe_redirect(add_query_arg('updated', 'true', admin_url('admin.php?page=custom-faq-settings')));
+        wp_safe_redirect(add_query_arg('updated', 'true', admin_url('admin.php?page=ceafm-settings')));
         exit;
     }
 } 

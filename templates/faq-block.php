@@ -1,13 +1,18 @@
 <?php
 /**
- * Template per il blocco FAQ
- * 
- * Utilizzato sia per il blocco Gutenberg che per lo shortcode
+ * Template for FAQ block
+ *
+ * @package Custom_Easy_FAQ_Manager
  */
+
+// Exit if accessed directly
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 // Verifica che $faqs sia definito e non vuoto
 if (!isset($faqs) || empty($faqs)) {
-    return '<div class="custom-faq-empty">' . __('Nessuna FAQ trovata.', 'custom-faq-manager') . '</div>';
+    return '<div class="custom-faq-empty">' . __('Nessuna FAQ trovata.', 'FAQ-Manager-Easy-WordPress') . '</div>';
 }
 
 $unique_id = 'custom-faq-' . uniqid();
